@@ -8,47 +8,65 @@ from typing import Any
 
 MODEL_CARDS = {
     "digital": {
-        "title": "Simulador 1 - Flujo de personas y formulario digital",
-        "system": "Evento de testeo sensorial donde los comensales degustan VitaCookies y luego completan un formulario digital desde su propio dispositivo.",
-        "objective": "Estimar riesgo de saturacion por envios simultaneos del formulario.",
-        "entities": "Comensales, formulario digital, servidor/capacidad concurrente.",
-        "state": "Formularios activos, utilizacion del sistema, minutos saturados.",
+        "title": "Simulador 1 - Formulario digital",
+        "system": "Personas que prueban VitaCookies y luego responden un formulario.",
+        "objective": "Ver si el formulario puede trabarse cuando muchas personas responden juntas.",
+        "entities": "Personas, formulario digital y capacidad simultanea.",
+        "state": "Formularios activos, uso del sistema y minutos de saturacion.",
         "events": "Llegada del comensal, fin de degustacion, inicio de carga, fin/envio del formulario.",
         "parameters": "Tasa de llegada, duracion, tiempo de degustacion, tiempo de formulario, capacidad concurrente.",
-        "inputs": "Escenario, tasa de llegada, duracion, tiempos promedio, capacidad y corridas.",
-        "outputs": "Probabilidad de saturacion, pico de carga, minuto del pico, utilizacion y decision sugerida.",
+        "inputs": "Escenario, tasa de llegada, duracion, tiempos promedio, capacidad y Numero de simulaciones.",
+        "outputs": "Riesgo de saturacion, pico esperado, pico prudente, uso del sistema y decision sugerida.",
         "assumptions": "Cada persona tiene celular propio; la limitacion relevante es la concurrencia del formulario.",
         "restrictions": "No modela fallas reales de red ni decisiones individuales complejas.",
         "scope": "Apoya decisiones operativas antes y despues del testeo sensorial.",
     },
     "stock": {
-        "title": "Simulador 2 - Stock de porciones",
-        "system": "Inventario de porciones disponibles para comensales durante el testeo.",
-        "objective": "Estimar riesgo de quiebre y stock recomendado.",
+        "title": "Simulador 2 - Porciones para el testeo",
+        "system": "Porciones disponibles para las personas que asisten al testeo.",
+        "objective": "Estimar si las porciones alcanzan y cuanta reserva conviene preparar.",
         "entities": "Comensales, porciones, desperdicio, demanda.",
         "state": "Porciones utiles, demanda, faltantes, sobrantes.",
         "events": "Asistencia al evento, decision de probar, consumo, perdida/desperdicio.",
         "parameters": "Porciones iniciales, comensales esperados, probabilidad de prueba, desperdicio, margen.",
-        "inputs": "Stock inicial, comensales, probabilidad de consumo, desperdicio, margen y corridas.",
-        "outputs": "Probabilidad de quiebre, percentiles de demanda, faltantes, sobrantes y stock recomendado.",
+        "inputs": "Porciones iniciales, comensales, probabilidad de consumo, desperdicio, reserva extra y Numero de simulaciones.",
+        "outputs": "Riesgo de faltante, demanda alta, faltantes, sobrantes y porciones sugeridas.",
         "assumptions": "La demanda y desperdicio varian aleatoriamente alrededor de los supuestos cargados.",
         "restrictions": "No modela preferencias individuales ni reposicion durante el evento.",
         "scope": "Apoya la decision de cantidad a producir para evitar faltantes y desperdicio excesivo.",
     },
     "viability": {
-        "title": "Simulador 3 - Viabilidad productiva y comercial",
-        "system": "Produccion y venta potencial de VitaCookies luego del testeo sensorial.",
-        "objective": "Evaluar rentabilidad preliminar y variables criticas.",
+        "title": "Simulador 3 - Viabilidad del producto",
+        "system": "Produccion y posible venta de VitaCookies.",
+        "objective": "Probar si el precio, los costos y la aceptacion alcanzan para que el producto sea rentable.",
         "entities": "Lotes, unidades, demanda, consumidores, costos, ingresos.",
         "state": "Unidades vendibles, demanda efectiva, costos, ingresos y ganancia.",
         "events": "Produccion de lote, desperdicio, venta, recuperacion de costos.",
         "parameters": "Costo por lote, unidades, precio, demanda, aceptacion, desperdicio y costos fijos.",
-        "inputs": "Costos, precio, demanda esperada, aceptacion sensorial, desperdicio y corridas.",
-        "outputs": "Costo unitario, punto de equilibrio, ganancia, probabilidad de rentabilidad y decision.",
+        "inputs": "Costos, precio, demanda esperada, aceptacion sensorial, desperdicio y Numero de simulaciones.",
+        "outputs": "Costo unitario, punto de equilibrio, ganancia, chance de rentabilidad y decision.",
         "assumptions": "La aceptacion sensorial impacta sobre la demanda efectiva.",
         "restrictions": "No reemplaza un estudio de mercado ni costos industriales reales.",
         "scope": "Apoya una decision preliminar sobre escalar o ajustar el producto.",
     },
+}
+
+METRIC_LABELS = {
+    "probabilidad_saturacion_pct": "Riesgo de saturacion (%)",
+    "pico_promedio": "Pico esperado",
+    "pico_p95": "Pico prudente",
+    "minutos_saturados_promedio": "Minutos saturados promedio",
+    "utilizacion_maxima_promedio_pct": "Uso maximo promedio (%)",
+    "probabilidad_quiebre_pct": "Riesgo de faltante (%)",
+    "demanda_p95": "Demanda alta",
+    "faltante_promedio": "Faltante promedio",
+    "sobrante_promedio": "Sobrante promedio",
+    "stock_recomendado": "Porciones sugeridas",
+    "probabilidad_rentabilidad_pct": "Chance de rentabilidad (%)",
+    "ganancia_promedio": "Ganancia promedio",
+    "ganancia_p10": "Ganancia baja",
+    "costo_unitario_promedio": "Costo unitario promedio",
+    "punto_equilibrio": "Punto de equilibrio",
 }
 
 
@@ -64,12 +82,16 @@ def _fmt(value: Any) -> str:
     return str(value)
 
 
+def _metric_label(key: str) -> str:
+    return METRIC_LABELS.get(key, key.replace("_", " ").capitalize())
+
+
 def _model_section(key: str, result: dict | None) -> str:
     card = MODEL_CARDS[key]
     lines = [
         f"## {card['title']}",
         "",
-        "### Modelado formal",
+        "### Como se calcula",
         f"- **Sistema:** {card['system']}",
         f"- **Objetivo:** {card['objective']}",
         f"- **Entidades:** {card['entities']}",
@@ -88,17 +110,17 @@ def _model_section(key: str, result: dict | None) -> str:
         return "\n".join(lines)
 
     metrics = result["metrics"]
-    lines.extend(["### Resultado, interpretacion y decision", ""])
-    lines.append(f"- **Resultado:** {metrics.get('resultado', 'No disponible')}")
-    lines.append(f"- **Interpretacion:** {metrics.get('interpretacion', 'No disponible')}")
-    lines.append(f"- **Recomendacion:** {metrics.get('recomendacion', 'No disponible')}")
-    lines.append(f"- **Decision sugerida:** {metrics.get('decision', 'No disponible')}")
+    lines.extend(["### Lectura rapida", ""])
+    lines.append(f"- **Que paso:** {metrics.get('resultado', 'No disponible')}")
+    lines.append(f"- **Que significa:** {metrics.get('interpretacion', 'No disponible')}")
+    lines.append(f"- **Que conviene hacer:** {metrics.get('recomendacion', 'No disponible')}")
+    lines.append(f"- **Decision:** {metrics.get('decision', 'No disponible')}")
     lines.append("")
     lines.append("### Indicadores principales")
     for key_metric, value in metrics.items():
         if key_metric in {"resultado", "interpretacion", "recomendacion", "decision"}:
             continue
-        lines.append(f"- **{key_metric.replace('_', ' ').capitalize()}:** {_fmt(value)}")
+        lines.append(f"- **{_metric_label(key_metric)}:** {_fmt(value)}")
     return "\n".join(lines)
 
 
@@ -128,6 +150,10 @@ El presente informe documenta una herramienta de simulacion desarrollada para ap
 
 El objetivo no es predecir exactamente el evento, sino construir modelos defendibles que permitan comparar escenarios, cuantificar incertidumbre y justificar recomendaciones concretas para el equipo de Nutricion.
 
+## Simulaciones del tablero
+
+Estas simulaciones anticipan riesgos operativos y comerciales: concurrencia del formulario, stock de porciones y viabilidad preliminar. Su proposito es apoyar decisiones con supuestos claros y acciones preventivas.
+
 {_model_section("digital", results.get("digital"))}
 
 {_model_section("stock", results.get("stock"))}
@@ -138,20 +164,20 @@ El objetivo no es predecir exactamente el evento, sino construir modelos defendi
 
 Todos los simuladores trabajan con escenarios optimista, esperado y pesimista. Estos escenarios modifican parametros relevantes del modelo: demanda, tiempos, desperdicio, costos, aceptacion o capacidad. No son etiquetas visuales, sino cambios efectivos en las distribuciones simuladas.
 
-## Verificacion
+## Chequeos internos
 
 {verification_text}
 
 ## Validacion del modelo
 
-La validacion se realizara comparando los resultados simulados con datos reales del evento. Las metricas a contrastar son: cantidad real de comensales, tiempo observado de carga del formulario, momentos de mayor concurrencia, porciones consumidas, porciones desperdiciadas, aceptacion sensorial e indicadores de viabilidad.
+La validacion se realiza comparando los resultados simulados con datos reales del evento. Las metricas a contrastar son: cantidad real de comensales, tiempo observado de carga del formulario, momentos de mayor concurrencia, porciones consumidas, porciones desperdiciadas, aceptacion sensorial e indicadores de viabilidad.
 
-Luego del evento se ajustaran los parametros base: tasa de llegada, probabilidad de prueba, porcentaje de desperdicio, aceptacion sensorial y demanda esperada. Esto permite ejecutar una simulacion posterior y comparar escenario previsto contra resultado observado.
+Luego del evento se pueden ajustar los parametros base: tasa de llegada, probabilidad de prueba, porcentaje de desperdicio, aceptacion sensorial y demanda esperada.
 
 ## Analisis para toma de decisiones
 
 - Si aumenta la probabilidad de saturacion digital, se recomienda escalonar los envios y tener respaldo.
-- Si aumenta la probabilidad de quiebre de stock, se recomienda producir mas porciones o definir reserva.
+- Si aumenta la probabilidad de faltante, se recomienda producir mas porciones o definir reserva.
 - Si baja la probabilidad de rentabilidad, se recomienda revisar precio, costos, desperdicio o aceptacion sensorial.
 
 ## Limitaciones
@@ -165,16 +191,7 @@ Luego del evento se ajustaran los parametros base: tasa de llegada, probabilidad
 
 - Importar respuestas reales del formulario digital.
 - Guardar historiales de escenarios.
-- Comparar automaticamente simulacion previa y posterior.
 - Exportar graficos al informe final.
-
-## Guia para defensa oral
-
-1. **Simulador digital:** explicar que usa eventos discretos para estimar concurrencia del formulario y decidir si conviene escalonar envios.
-2. **Simulador de stock:** explicar que usa Monte Carlo para decidir cuantas porciones preparar minimizando faltantes y desperdicio.
-3. **Simulador de viabilidad:** explicar que usa Monte Carlo para analizar rentabilidad bajo incertidumbre de demanda, costos y aceptacion.
-4. **Validacion:** aclarar que los supuestos previos se reemplazan por datos reales despues del testeo sensorial.
-5. **Conclusion:** la herramienta transforma datos estimados y reales en decisiones concretas para Nutricion.
 """
 
 
