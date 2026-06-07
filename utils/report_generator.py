@@ -1,140 +1,204 @@
 from __future__ import annotations
 
 from datetime import datetime
+from io import BytesIO
 from math import isinf
 from typing import Any
 
 
-def _fmt(value: Any, decimals: int = 2) -> str:
+MODEL_CARDS = {
+    "digital": {
+        "title": "Simulador 1 - Flujo de personas y formulario digital",
+        "system": "Evento de testeo sensorial donde los comensales degustan VitaCookies y luego completan un formulario digital desde su propio dispositivo.",
+        "objective": "Estimar riesgo de saturacion por envios simultaneos del formulario.",
+        "entities": "Comensales, formulario digital, servidor/capacidad concurrente.",
+        "state": "Formularios activos, utilizacion del sistema, minutos saturados.",
+        "events": "Llegada del comensal, fin de degustacion, inicio de carga, fin/envio del formulario.",
+        "parameters": "Tasa de llegada, duracion, tiempo de degustacion, tiempo de formulario, capacidad concurrente.",
+        "inputs": "Escenario, tasa de llegada, duracion, tiempos promedio, capacidad y corridas.",
+        "outputs": "Probabilidad de saturacion, pico de carga, minuto del pico, utilizacion y decision sugerida.",
+        "assumptions": "Cada persona tiene celular propio; la limitacion relevante es la concurrencia del formulario.",
+        "restrictions": "No modela fallas reales de red ni decisiones individuales complejas.",
+        "scope": "Apoya decisiones operativas antes y despues del testeo sensorial.",
+    },
+    "stock": {
+        "title": "Simulador 2 - Stock de porciones",
+        "system": "Inventario de porciones disponibles para comensales durante el testeo.",
+        "objective": "Estimar riesgo de quiebre y stock recomendado.",
+        "entities": "Comensales, porciones, desperdicio, demanda.",
+        "state": "Porciones utiles, demanda, faltantes, sobrantes.",
+        "events": "Asistencia al evento, decision de probar, consumo, perdida/desperdicio.",
+        "parameters": "Porciones iniciales, comensales esperados, probabilidad de prueba, desperdicio, margen.",
+        "inputs": "Stock inicial, comensales, probabilidad de consumo, desperdicio, margen y corridas.",
+        "outputs": "Probabilidad de quiebre, percentiles de demanda, faltantes, sobrantes y stock recomendado.",
+        "assumptions": "La demanda y desperdicio varian aleatoriamente alrededor de los supuestos cargados.",
+        "restrictions": "No modela preferencias individuales ni reposicion durante el evento.",
+        "scope": "Apoya la decision de cantidad a producir para evitar faltantes y desperdicio excesivo.",
+    },
+    "viability": {
+        "title": "Simulador 3 - Viabilidad productiva y comercial",
+        "system": "Produccion y venta potencial de VitaCookies luego del testeo sensorial.",
+        "objective": "Evaluar rentabilidad preliminar y variables criticas.",
+        "entities": "Lotes, unidades, demanda, consumidores, costos, ingresos.",
+        "state": "Unidades vendibles, demanda efectiva, costos, ingresos y ganancia.",
+        "events": "Produccion de lote, desperdicio, venta, recuperacion de costos.",
+        "parameters": "Costo por lote, unidades, precio, demanda, aceptacion, desperdicio y costos fijos.",
+        "inputs": "Costos, precio, demanda esperada, aceptacion sensorial, desperdicio y corridas.",
+        "outputs": "Costo unitario, punto de equilibrio, ganancia, probabilidad de rentabilidad y decision.",
+        "assumptions": "La aceptacion sensorial impacta sobre la demanda efectiva.",
+        "restrictions": "No reemplaza un estudio de mercado ni costos industriales reales.",
+        "scope": "Apoya una decision preliminar sobre escalar o ajustar el producto.",
+    },
+}
+
+
+def _fmt(value: Any) -> str:
     if value is None:
-        return "No disponible"
+        return "No ejecutado"
+    if isinstance(value, tuple):
+        return f"{value[0]:,.2f} a {value[1]:,.2f}"
     if isinstance(value, float) and isinf(value):
-        return "No alcanzable con margen negativo"
-    if isinstance(value, (int, float)):
-        return f"{value:,.{decimals}f}"
+        return "No alcanzable"
+    if isinstance(value, float):
+        return f"{value:,.2f}"
     return str(value)
 
 
-def _section_result(title: str, result: dict | None, interpretation: str) -> str:
+def _model_section(key: str, result: dict | None) -> str:
+    card = MODEL_CARDS[key]
+    lines = [
+        f"## {card['title']}",
+        "",
+        "### Modelado formal",
+        f"- **Sistema:** {card['system']}",
+        f"- **Objetivo:** {card['objective']}",
+        f"- **Entidades:** {card['entities']}",
+        f"- **Variables de estado:** {card['state']}",
+        f"- **Eventos:** {card['events']}",
+        f"- **Parametros:** {card['parameters']}",
+        f"- **Variables de entrada:** {card['inputs']}",
+        f"- **Variables de salida:** {card['outputs']}",
+        f"- **Supuestos:** {card['assumptions']}",
+        f"- **Restricciones:** {card['restrictions']}",
+        f"- **Alcance:** {card['scope']}",
+        "",
+    ]
     if not result:
-        return f"## {title}\n\nEl simulador no fue ejecutado en esta sesión.\n"
+        lines.append("El simulador no fue ejecutado en esta sesion.")
+        return "\n".join(lines)
 
     metrics = result["metrics"]
-    lines = [f"## {title}", "", "### Resultados principales", ""]
-    for key, value in metrics.items():
-        if key.startswith("recomendacion"):
+    lines.extend(["### Resultado, interpretacion y decision", ""])
+    lines.append(f"- **Resultado:** {metrics.get('resultado', 'No disponible')}")
+    lines.append(f"- **Interpretacion:** {metrics.get('interpretacion', 'No disponible')}")
+    lines.append(f"- **Recomendacion:** {metrics.get('recomendacion', 'No disponible')}")
+    lines.append(f"- **Decision sugerida:** {metrics.get('decision', 'No disponible')}")
+    lines.append("")
+    lines.append("### Indicadores principales")
+    for key_metric, value in metrics.items():
+        if key_metric in {"resultado", "interpretacion", "recomendacion", "decision"}:
             continue
-        label = key.replace("_", " ").capitalize()
-        lines.append(f"- **{label}:** {_fmt(value)}")
-
-    lines.extend(
-        [
-            "",
-            "### Interpretación",
-            "",
-            interpretation,
-            "",
-            "### Recomendación para Nutrición",
-            "",
-            metrics.get("recomendacion", "No disponible."),
-        ]
-    )
+        lines.append(f"- **{key_metric.replace('_', ' ').capitalize()}:** {_fmt(value)}")
     return "\n".join(lines)
 
 
-def generate_markdown_report(results: dict[str, dict | None]) -> str:
-    """Builds an academic Markdown report from the last executed simulations."""
-    generated_at = datetime.now().strftime("%d/%m/%Y %H:%M")
+def generate_markdown_report(results: dict[str, dict | None], verification: dict[str, dict] | None = None) -> str:
+    date = datetime.now().strftime("%d/%m/%Y %H:%M")
+    verification = verification or {}
+    verification_lines = []
+    for model, checks in verification.items():
+        verification_lines.append(f"### {model}")
+        for check, ok in checks.items():
+            verification_lines.append(f"- {check.replace('_', ' ')}: {'cumple' if ok else 'revisar'}")
+    verification_text = "\n".join(verification_lines) if verification_lines else "La verificacion se completa al ejecutar los simuladores."
 
-    queue = results.get("queue")
-    stock = results.get("stock")
-    viability = results.get("viability")
+    return f"""# Informe academico - Simuladores VitaCookies
 
-    queue_interpretation = (
-        "El modelo permite estimar si la carga simultánea del formulario digital puede superar "
-        "la capacidad concurrente considerada. Se asume que cada comensal puede usar su propio "
-        "celular, por lo que el recurso limitado no es el dispositivo sino la concurrencia de envíos."
-    )
-    stock_interpretation = (
-        "La simulación estima la demanda efectiva de porciones a partir de comensales esperados, "
-        "probabilidad de prueba y desperdicio. El resultado sirve para decidir si conviene producir "
-        "más, sostener el stock previsto o aceptar cierto sobrante para reducir el riesgo de quiebre."
-    )
-    viability_interpretation = (
-        "El modelo combina demanda, aceptación sensorial, costos, desperdicio y precio de venta. "
-        "No reemplaza un estudio comercial completo, pero permite justificar una decisión preliminar "
-        "sobre escalabilidad del producto después del testeo."
-    )
+**Fecha:** {date}
 
-    report = f"""# Informe técnico - Simuladores VitaCookies
+**Materia:** Modelos y Simulacion  
+**Proyecto:** Evaluacion integradora intercatedra entre Ingenieria en Sistemas y Nutricion  
+**Producto:** Galletita vegetal sustentable con avena, lentejas, manzana y zanahoria.
 
-**Fecha de generación:** {generated_at}
+## Portada
 
-## Descripción general
+El presente informe documenta una herramienta de simulacion desarrollada para apoyar decisiones antes y despues del testeo sensorial de VitaCookies. La herramienta integra simulacion de eventos discretos y Monte Carlo para analizar riesgos operativos, stock y viabilidad productiva/comercial.
 
-VitaCookies es una propuesta de galletitas vegetales sustentables elaboradas con avena, lentejas, manzana y zanahoria. Este proyecto digital apoya el trabajo integrador entre Ingeniería en Sistemas y Nutrición mediante tres simuladores orientados a anticipar riesgos, evaluar escenarios y producir recomendaciones antes y después del testeo sensorial.
+## Descripcion general
 
-El formulario digital de referencia para la evaluación sensorial se encuentra en: https://vita-cookies-form-v.vercel.app/
+El objetivo no es predecir exactamente el evento, sino construir modelos defendibles que permitan comparar escenarios, cuantificar incertidumbre y justificar recomendaciones concretas para el equipo de Nutricion.
 
-## Objetivo general
+{_model_section("digital", results.get("digital"))}
 
-Desarrollar una herramienta clara, defendible y útil para la toma de decisiones del equipo de Nutrición, integrando un modelo de carga digital, inventario y Montecarlo productivo/comercial.
+{_model_section("stock", results.get("stock"))}
 
-## Modelos implementados
+{_model_section("viability", results.get("viability"))}
 
-- **Envío simultáneo del formulario digital:** simulación de eventos discretos con llegadas aleatorias y carga concurrente del formulario.
-- **Stock de porciones:** simulación Montecarlo de demanda, desperdicio y faltantes.
-- **Viabilidad productiva/comercial:** simulación Montecarlo de costos, aceptación, demanda, punto de equilibrio y ganancia.
+## Escenarios
 
-## Variables de entrada
+Todos los simuladores trabajan con escenarios optimista, esperado y pesimista. Estos escenarios modifican parametros relevantes del modelo: demanda, tiempos, desperdicio, costos, aceptacion o capacidad. No son etiquetas visuales, sino cambios efectivos en las distribuciones simuladas.
 
-- Tasa estimada de envíos, duración del evento, capacidad concurrente del formulario y tiempo promedio de carga.
-- Porciones iniciales, comensales esperados, probabilidad de prueba, desperdicio, margen de seguridad y corridas Montecarlo.
-- Costo por lote, unidades por lote, desperdicio productivo, precio, demanda esperada, aceptación sensorial, costos fijos y corridas Montecarlo.
+## Verificacion
 
-## Variables de salida
+{verification_text}
 
-- Envíos simulados, pico de carga digital, minutos saturados, porcentaje de tiempo saturado y recomendación operativa.
-- Probabilidad de quiebre de stock, demanda estimada, faltantes, sobrantes, desperdicio y porciones recomendadas.
-- Costo unitario, punto de equilibrio, ganancia esperada, probabilidad de rentabilidad y recomendación de viabilidad.
+## Validacion del modelo
 
-## Supuestos del modelo
+La validacion se realizara comparando los resultados simulados con datos reales del evento. Las metricas a contrastar son: cantidad real de comensales, tiempo observado de carga del formulario, momentos de mayor concurrencia, porciones consumidas, porciones desperdiciadas, aceptacion sensorial e indicadores de viabilidad.
 
-- Las llegadas se aproximan mediante un proceso aleatorio de Poisson.
-- Los tiempos de carga del formulario se modelan con distribuciones positivas para evitar valores irreales.
-- La aceptación sensorial se interpreta como proporción de demanda efectiva.
-- Los escenarios optimista, esperado y pesimista modifican demanda, tiempos, desperdicio, costos y aceptación.
-- Los resultados son estimaciones para apoyar decisiones, no predicciones exactas.
+Luego del evento se ajustaran los parametros base: tasa de llegada, probabilidad de prueba, porcentaje de desperdicio, aceptacion sensorial y demanda esperada. Esto permite ejecutar una simulacion posterior y comparar escenario previsto contra resultado observado.
 
-{_section_result("Simulador 1 - Envío simultáneo del formulario digital", queue, queue_interpretation)}
+## Analisis para toma de decisiones
 
-{_section_result("Simulador 2 - Stock de porciones", stock, stock_interpretation)}
-
-{_section_result("Simulador 3 - Viabilidad productiva/comercial", viability, viability_interpretation)}
-
-## Escenarios ejecutados
-
-La aplicación permite ejecutar escenarios optimista, esperado y pesimista. Para presentación oral se recomienda mostrar primero el escenario esperado y luego contrastarlo con el pesimista para justificar medidas preventivas.
-
-## Recomendaciones concretas para Nutrición
-
-- Usar tandas de envío si se espera una concentración alta de comensales.
-- Tener una alternativa de respaldo si el formulario no responde durante el pico.
-- Preparar stock con margen de seguridad cuando la probabilidad de quiebre supere valores moderados.
-- Registrar datos reales el día del testeo para recalibrar los supuestos antes de la entrega final.
-- Comparar aceptación sensorial real contra la aceptación estimada para revisar viabilidad productiva.
+- Si aumenta la probabilidad de saturacion digital, se recomienda escalonar los envios y tener respaldo.
+- Si aumenta la probabilidad de quiebre de stock, se recomienda producir mas porciones o definir reserva.
+- Si baja la probabilidad de rentabilidad, se recomienda revisar precio, costos, desperdicio o aceptacion sensorial.
 
 ## Limitaciones
 
-- No se modelan fallos reales de conectividad ni comportamiento individual detallado.
-- Los costos y precios son supuestos editables; deben reemplazarse por datos reales cuando estén disponibles.
-- La aceptación sensorial se simplifica como una variable agregada.
+- Los modelos simplifican comportamientos individuales.
+- La capacidad del formulario es estimada si no se dispone de medicion tecnica real.
+- Los costos comerciales deben reemplazarse por datos reales si el producto escala.
+- La aceptacion sensorial se resume como variable agregada.
 
-## Posibles mejoras futuras
+## Mejoras futuras
 
-- Importar automáticamente resultados del formulario digital.
-- Comparar simulación previa contra resultados reales posteriores al evento.
-- Exportar gráficos e indicadores en formato PDF o DOCX.
-- Incorporar segmentación por perfil de juez/comensal.
+- Importar respuestas reales del formulario digital.
+- Guardar historiales de escenarios.
+- Comparar automaticamente simulacion previa y posterior.
+- Exportar graficos al informe final.
+
+## Guia para defensa oral
+
+1. **Simulador digital:** explicar que usa eventos discretos para estimar concurrencia del formulario y decidir si conviene escalonar envios.
+2. **Simulador de stock:** explicar que usa Monte Carlo para decidir cuantas porciones preparar minimizando faltantes y desperdicio.
+3. **Simulador de viabilidad:** explicar que usa Monte Carlo para analizar rentabilidad bajo incertidumbre de demanda, costos y aceptacion.
+4. **Validacion:** aclarar que los supuestos previos se reemplazan por datos reales despues del testeo sensorial.
+5. **Conclusion:** la herramienta transforma datos estimados y reales en decisiones concretas para Nutricion.
 """
-    return report
+
+
+def generate_docx_report(markdown_text: str) -> bytes:
+    from docx import Document
+
+    document = Document()
+    for raw_line in markdown_text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line.startswith("# "):
+            document.add_heading(line[2:], level=0)
+        elif line.startswith("## "):
+            document.add_heading(line[3:], level=1)
+        elif line.startswith("### "):
+            document.add_heading(line[4:], level=2)
+        elif line.startswith("- "):
+            document.add_paragraph(line[2:], style="List Bullet")
+        elif line[0:2].isdigit() and ". " in line[:4]:
+            document.add_paragraph(line, style="List Number")
+        else:
+            document.add_paragraph(line.replace("**", ""))
+    output = BytesIO()
+    document.save(output)
+    return output.getvalue()
+

@@ -1,176 +1,96 @@
-# Documentacion tecnica - Simuladores VitaCookies
+# Documentacion tecnica y academica
 
-## 1. Proposito del sistema
+## Enfoque metodologico
 
-El sistema acompana el testeo sensorial de VitaCookies, una galletita vegetal sustentable elaborada con avena, lentejas, manzana y zanahoria. La herramienta permite simular escenarios antes y despues del evento para apoyar decisiones del equipo de Nutricion.
+El proyecto VitaCookies utiliza modelos de simulacion para apoyar decisiones de Nutricion antes y despues de un testeo sensorial. La herramienta no busca certeza absoluta, sino comparar escenarios bajo incertidumbre.
 
-El proyecto no busca una prediccion exacta, sino un modelo claro, justificable y comunicable para la materia Modelos y Simulacion.
+## Simulador 1 - Flujo de personas y formulario digital
 
-## 2. Arquitectura
+- **Sistema:** evento sensorial con comensales que degustan y completan un formulario digital.
+- **Objetivo:** estimar saturacion por envios simultaneos.
+- **Entidades:** comensales, formulario, servidor/capacidad concurrente.
+- **Variables de estado:** formularios activos, utilizacion, minutos saturados.
+- **Eventos:** llegada, fin de degustacion, inicio de formulario, envio.
+- **Parametros:** tasa de llegada, duracion, tiempos promedio, capacidad.
+- **Entrada:** escenario y parametros operativos.
+- **Salida:** probabilidad de saturacion, pico, minuto pico, utilizacion y decision.
+- **Supuestos:** cada persona usa su propio celular.
+- **Restricciones:** no se modelan fallas reales de red.
+- **Alcance:** apoyo operativo al evento.
 
-La aplicacion separa interfaz y logica:
+## Simulador 2 - Stock de porciones
 
-- `app.py`: interfaz Streamlit, controles, metricas, graficos y descargas.
-- `simulators/queue_simulator.py`: modelo de carga simultanea del formulario digital.
-- `simulators/stock_simulator.py`: modelo Montecarlo de stock.
-- `simulators/viability_simulator.py`: modelo Montecarlo productivo/comercial.
-- `utils/report_generator.py`: generacion de informe academico en Markdown.
+- **Sistema:** inventario de porciones.
+- **Objetivo:** estimar quiebre y stock recomendado.
+- **Entidades:** comensales, porciones, demanda, desperdicio.
+- **Variables de estado:** porciones utiles, faltantes, sobrantes.
+- **Eventos:** asistencia, decision de probar, consumo, desperdicio.
+- **Modelo:** Monte Carlo.
+- **Salida:** probabilidad de quiebre, percentiles, sobrantes, faltantes y recomendacion.
 
-Esta separacion facilita explicar los modelos y modificar supuestos sin tocar la interfaz.
+## Simulador 3 - Viabilidad productiva/comercial
 
-## 3. Simulador de envio simultaneo del formulario digital
+- **Sistema:** produccion y venta potencial.
+- **Objetivo:** estimar rentabilidad preliminar.
+- **Entidades:** lotes, unidades, demanda, consumidores, costos.
+- **Variables de estado:** costo total, ingresos, ganancia.
+- **Eventos:** produccion, desperdicio, venta.
+- **Modelo:** Monte Carlo.
+- **Salida:** costo unitario, punto de equilibrio, ganancia, probabilidad rentable.
 
-### Objetivo
+## Escenarios
 
-Determinar si durante el evento el formulario digital puede saturarse por muchos envios simultaneos.
+Los escenarios modifican parametros:
 
-### Tipo de modelo
+- **Optimista:** menor riesgo, menor desperdicio, mejor aceptacion o mayor capacidad.
+- **Esperado:** supuestos base.
+- **Pesimista:** mayor demanda concentrada, mayor desperdicio, mayores costos o menor aceptacion.
 
-Simulacion de eventos discretos con llegadas aleatorias y carga concurrente del formulario.
+## Analisis de sensibilidad
 
-### Supuestos
+Permite identificar que variable afecta mas el resultado:
 
-- Las llegadas se aproximan mediante un proceso de Poisson.
-- Cada comensal puede usar su propio dispositivo.
-- El cuello de botella digital no es la cantidad de celulares, sino la capacidad concurrente del formulario/servidor.
-- El tiempo de carga del formulario es positivo y variable.
+- tasa de envios y capacidad para formulario;
+- probabilidad de prueba y desperdicio para stock;
+- precio, costos, aceptacion y desperdicio para viabilidad.
 
-### Variables de entrada
+## Verificacion
 
-- Tasa estimada de envios por hora.
-- Duracion del evento.
-- Capacidad del formulario en envios simultaneos.
-- Tiempo promedio de carga del formulario.
-- Escenario: optimista, esperado o pesimista.
+Se controla que:
 
-### Variables de salida
+- no haya tiempos negativos;
+- no haya cantidades negativas;
+- las probabilidades esten entre 0 y 1;
+- los costos no sean negativos;
+- el modelo responda ante cambios de parametros.
 
-- Envios simulados.
-- Pico de carga del formulario.
-- Momento del pico de carga.
-- Minutos con saturacion digital.
-- Porcentaje de tiempo saturado.
-- Recomendacion operativa.
+## Validacion
 
-### Interpretacion
+La validacion se realiza luego del testeo sensorial. Se comparan resultados simulados contra datos reales:
 
-Si el pico de envios supera la capacidad del formulario, el riesgo esta en la carga digital y conviene escalonar los envios.
+- asistencia real;
+- tiempo real de formulario;
+- consumo real;
+- desperdicio real;
+- aceptacion sensorial real;
+- costos reales.
 
-## 4. Simulador de stock de porciones
+Con esos datos se recalibran los modelos y se ejecuta una simulacion posterior.
 
-### Objetivo
+## Limitaciones
 
-Estimar si la cantidad de porciones preparadas alcanza para cubrir la demanda del testeo sensorial, considerando desperdicio y variabilidad.
+- No se modelan preferencias individuales completas.
+- La capacidad del formulario es una estimacion si no hay medicion tecnica.
+- La aceptacion sensorial se resume como variable agregada.
 
-### Tipo de modelo
+## Defensa oral
 
-Simulacion Montecarlo.
+La defensa debe enfocarse en:
 
-### Supuestos
+1. problema que resuelve cada simulador;
+2. modelo usado;
+3. escenarios;
+4. sensibilidad;
+5. decision sugerida para Nutricion;
+6. validacion posterior con datos reales.
 
-- La cantidad de comensales reales puede desviarse de la cantidad esperada.
-- No todos los comensales necesariamente prueban el producto.
-- Existe desperdicio de proceso o servicio.
-- La cantidad recomendada utiliza un percentil alto de demanda y un margen de seguridad.
-
-### Variables de entrada
-
-- Cantidad inicial de porciones.
-- Cantidad esperada de comensales.
-- Probabilidad de que cada comensal pruebe el producto.
-- Porcentaje de desperdicio.
-- Margen de seguridad.
-- Cantidad de corridas.
-- Escenario.
-
-### Variables de salida
-
-- Probabilidad de quiebre de stock.
-- Demanda promedio y demanda alta estimada.
-- Porciones faltantes promedio.
-- Porciones sobrantes promedio.
-- Desperdicio promedio.
-- Porciones recomendadas.
-- Estado: stock suficiente, stock ajustado o alto riesgo de quiebre.
-
-### Interpretacion
-
-Una probabilidad de quiebre baja indica que el stock es suficiente. Una probabilidad moderada indica stock ajustado. Una probabilidad alta justifica aumentar la produccion o planificar una reserva.
-
-## 5. Simulador de viabilidad productiva/comercial
-
-### Objetivo
-
-Evaluar si VitaCookies podria ser viable productiva y comercialmente despues del testeo sensorial.
-
-### Tipo de modelo
-
-Simulacion Montecarlo de costos, demanda, desperdicio y aceptacion sensorial.
-
-### Supuestos
-
-- La aceptacion sensorial impacta en la demanda efectiva.
-- El desperdicio reduce la cantidad vendible por lote.
-- Los costos por lote pueden variar.
-- El precio de venta se considera constante durante cada simulacion.
-- Los costos fijos se recuperan mediante el margen de contribucion.
-
-### Variables de entrada
-
-- Costo por lote.
-- Unidades por lote.
-- Costos fijos.
-- Desperdicio productivo.
-- Precio de venta.
-- Demanda esperada.
-- Aceptacion sensorial esperada.
-- Cantidad de corridas.
-- Escenario.
-
-### Variables de salida
-
-- Costo unitario promedio.
-- Demanda efectiva promedio.
-- Punto de equilibrio.
-- Ganancia promedio.
-- Rango probable de ganancia.
-- Probabilidad de rentabilidad.
-- Estado: viable, parcialmente viable o no viable.
-
-### Interpretacion
-
-El producto se considera viable si la probabilidad de rentabilidad es alta y la ganancia esperada es positiva. Si la probabilidad es intermedia, se considera parcialmente viable y requiere ajustes. Si el margen es insuficiente o no se alcanza el punto de equilibrio, se considera no viable.
-
-## 6. Escenarios
-
-Los escenarios modifican los parametros de forma simple y defendible:
-
-- **Optimista:** menor tiempo de atencion, menor desperdicio, mayor capacidad o mayor aceptacion.
-- **Esperado:** valores base cargados por el usuario.
-- **Pesimista:** mayor concentracion de demanda, mayor desperdicio, mayor costo o menor aceptacion.
-
-Esta comparacion ayuda a comunicar riesgos durante la presentacion oral.
-
-## 7. Validaciones
-
-Los modelos aplican controles basicos:
-
-- valores minimos positivos para tiempos, costos y capacidades;
-- limites para probabilidades y porcentajes;
-- recorte de valores simulados para evitar tiempos, demandas o porciones negativas;
-- cantidad minima de corridas Montecarlo.
-
-## 8. Limitaciones
-
-- No se modelan comportamiento individual detallado ni fallas reales de conectividad.
-- No se incorporan fallas reales de conectividad o caidas del servicio.
-- La aceptacion sensorial se resume como una probabilidad agregada.
-- Los costos deben reemplazarse por datos reales si el equipo de Nutricion los obtiene.
-
-## 9. Mejoras futuras
-
-- Importar resultados del formulario digital.
-- Comparar automaticamente simulacion previa contra datos reales.
-- Exportar informe en DOCX o PDF.
-- Incorporar perfiles de comensales y segmentacion sensorial.
-- Guardar historiales de escenarios para comparaciones entre clases.

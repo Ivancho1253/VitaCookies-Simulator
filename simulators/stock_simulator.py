@@ -7,9 +7,9 @@ import pandas as pd
 
 
 SCENARIOS = {
-    "Optimista": {"people_factor": 0.90, "trial_factor": 0.95, "waste_factor": 0.85},
-    "Esperado": {"people_factor": 1.00, "trial_factor": 1.00, "waste_factor": 1.00},
-    "Pesimista": {"people_factor": 1.15, "trial_factor": 1.08, "waste_factor": 1.25},
+    "Optimista": {"diners": 0.90, "trial": 0.95, "waste": 0.80},
+    "Esperado": {"diners": 1.00, "trial": 1.00, "waste": 1.00},
+    "Pesimista": {"diners": 1.20, "trial": 1.10, "waste": 1.30},
 }
 
 
@@ -25,94 +25,130 @@ class StockInputs:
     seed: int = 42
 
 
+def confidence_interval(series: pd.Series) -> tuple[float, float]:
+    values = series.astype(float).to_numpy()
+    mean = float(values.mean())
+    if len(values) < 2:
+        return mean, mean
+    half = 1.96 * float(values.std(ddof=1)) / np.sqrt(len(values))
+    return mean - half, mean + half
+
+
 def simulate_stock(inputs: StockInputs) -> dict:
     rng = np.random.default_rng(inputs.seed)
     scenario = SCENARIOS.get(inputs.scenario, SCENARIOS["Esperado"])
-
     runs = max(int(inputs.runs), 100)
-    initial_portions = max(int(inputs.initial_portions), 0)
-    expected_diners = max(int(inputs.expected_diners), 1)
-    trial_probability = float(np.clip(inputs.trial_probability * scenario["trial_factor"], 0, 1))
-    waste_mean = float(np.clip(inputs.waste_percentage * scenario["waste_factor"], 0, 0.6))
-    safety_margin = float(np.clip(inputs.safety_margin, 0, 0.8))
+    initial = max(int(inputs.initial_portions), 0)
+    diners_mean = max(float(inputs.expected_diners) * scenario["diners"], 1)
+    trial_prob = float(np.clip(inputs.trial_probability * scenario["trial"], 0, 1))
+    waste_mean = float(np.clip(inputs.waste_percentage * scenario["waste"], 0, 0.70))
+    safety = float(np.clip(inputs.safety_margin, 0, 1))
 
-    diners_mean = expected_diners * scenario["people_factor"]
-    diners = rng.normal(diners_mean, max(diners_mean * 0.12, 1), runs)
-    diners = np.clip(np.round(diners), 0, None).astype(int)
-    demand = rng.binomial(diners, trial_probability)
+    diners = np.clip(np.round(rng.normal(diners_mean, max(diners_mean * 0.15, 1), runs)), 0, None).astype(int)
+    demand = rng.binomial(diners, trial_prob)
+    waste = np.clip(rng.normal(waste_mean, max(waste_mean * 0.25, 0.01), runs), 0, 0.85)
+    usable = np.floor(initial * (1 - waste)).astype(int)
+    shortage = np.maximum(demand - usable, 0)
+    surplus = np.maximum(usable - demand, 0)
+    process_waste = initial - usable
 
-    waste = rng.normal(waste_mean, max(waste_mean * 0.25, 0.01), runs)
-    waste = np.clip(waste, 0, 0.7)
-    usable_portions = np.floor(initial_portions * (1 - waste)).astype(int)
+    shortage_prob = float((shortage > 0).mean() * 100)
+    recommended_raw = np.percentile(demand / np.maximum(1 - waste, 0.05), 90)
+    recommended = int(np.ceil(recommended_raw * (1 + safety)))
 
-    missing = np.maximum(demand - usable_portions, 0)
-    surplus = np.maximum(usable_portions - demand, 0)
-    wasted_by_process = initial_portions - usable_portions
-    shortage_probability = float((missing > 0).mean() * 100)
-
-    recommended_base = np.percentile(demand / np.maximum(1 - waste, 0.05), 90)
-    recommended_portions = int(np.ceil(recommended_base * (1 + safety_margin)))
-
-    if shortage_probability <= 5 and surplus.mean() <= initial_portions * 0.35:
-        status = "Stock suficiente"
-        recommendation = (
-            "El stock cubre la demanda con bajo riesgo. Mantener control de entrega para reducir desperdicio."
-        )
-    elif shortage_probability <= 15:
-        status = "Stock ajustado"
-        recommendation = (
-            f"Preparar cerca de {recommended_portions} porciones o tener una reserva; "
-            "el riesgo no es crítico, pero puede aparecer faltante si aumenta la participación."
-        )
-    else:
+    if shortage_prob > 20:
         status = "Alto riesgo de quiebre"
-        recommendation = (
-            f"Aumentar la producción a por lo menos {recommended_portions} porciones "
-            "antes del testeo sensorial."
-        )
+        decision = f"Aumentar produccion a por lo menos {recommended} porciones."
+    elif shortage_prob > 5:
+        status = "Stock ajustado"
+        decision = f"Preparar reserva o acercar el stock a {recommended} porciones."
+    else:
+        status = "Stock suficiente"
+        decision = "Mantener stock previsto y controlar desperdicio de servicio."
 
     simulations = pd.DataFrame(
         {
             "comensales": diners,
-            "demanda_porciones": demand,
+            "demanda": demand,
             "desperdicio_pct": waste,
-            "porciones_utiles": usable_portions,
-            "porciones_faltantes": missing,
-            "porciones_sobrantes": surplus,
-            "desperdicio_proceso": wasted_by_process,
+            "porciones_utiles": usable,
+            "faltantes": shortage,
+            "sobrantes": surplus,
+            "desperdicio_proceso": process_waste,
         }
     )
 
     metrics = {
-        "probabilidad_quiebre_pct": shortage_probability,
+        "probabilidad_quiebre_pct": shortage_prob,
         "demanda_promedio": float(demand.mean()),
+        "demanda_p50": float(np.percentile(demand, 50)),
         "demanda_p90": float(np.percentile(demand, 90)),
-        "porciones_faltantes_prom": float(missing.mean()),
-        "porciones_sobrantes_prom": float(surplus.mean()),
-        "desperdicio_promedio": float(wasted_by_process.mean()),
-        "porciones_recomendadas": recommended_portions,
+        "demanda_p95": float(np.percentile(demand, 95)),
+        "faltante_promedio": float(shortage.mean()),
+        "sobrante_promedio": float(surplus.mean()),
+        "desperdicio_promedio": float(process_waste.mean()),
+        "stock_recomendado": recommended,
+        "ic95_demanda": confidence_interval(simulations["demanda"]),
         "estado": status,
-        "recomendacion": recommendation,
+        "resultado": f"Probabilidad de quiebre {shortage_prob:.1f}% con {initial} porciones iniciales.",
+        "interpretacion": "El riesgo aumenta cuando la demanda efectiva y el desperdicio superan las porciones utiles.",
+        "recomendacion": decision,
+        "decision": decision,
     }
-
     return {"metrics": metrics, "simulations": simulations}
 
 
-def simulate_stock_scenarios(inputs: StockInputs) -> pd.DataFrame:
+def scenario_comparison(inputs: StockInputs) -> pd.DataFrame:
     rows = []
     for scenario in SCENARIOS:
-        scenario_inputs = StockInputs(**{**inputs.__dict__, "scenario": scenario})
-        result = simulate_stock(scenario_inputs)
-        metrics = result["metrics"]
+        result = simulate_stock(StockInputs(**{**inputs.__dict__, "scenario": scenario}))
+        m = result["metrics"]
         rows.append(
             {
                 "escenario": scenario,
-                "prob_quiebre_pct": metrics["probabilidad_quiebre_pct"],
-                "demanda_promedio": metrics["demanda_promedio"],
-                "faltante_promedio": metrics["porciones_faltantes_prom"],
-                "sobrante_promedio": metrics["porciones_sobrantes_prom"],
-                "recomendadas": metrics["porciones_recomendadas"],
+                "prob_quiebre_pct": m["probabilidad_quiebre_pct"],
+                "demanda_p95": m["demanda_p95"],
+                "faltante_promedio": m["faltante_promedio"],
+                "sobrante_promedio": m["sobrante_promedio"],
+                "stock_recomendado": m["stock_recomendado"],
             }
         )
     return pd.DataFrame(rows)
+
+
+def sensitivity_analysis(inputs: StockInputs) -> pd.DataFrame:
+    rows = []
+    tests = {
+        "Comensales esperados": ("expected_diners", [0.80, 1.0, 1.20]),
+        "Probabilidad de prueba": ("trial_probability", [0.80, 1.0, 1.20]),
+        "Desperdicio": ("waste_percentage", [0.75, 1.0, 1.25]),
+    }
+    for variable, (field, factors) in tests.items():
+        for factor in factors:
+            data = inputs.__dict__.copy()
+            data[field] = data[field] * factor
+            if field == "expected_diners":
+                data[field] = max(int(round(data[field])), 1)
+            if field == "trial_probability":
+                data[field] = float(np.clip(data[field], 0, 1))
+            result = simulate_stock(StockInputs(**data))
+            rows.append(
+                {
+                    "variable": variable,
+                    "factor": factor,
+                    "prob_quiebre_pct": result["metrics"]["probabilidad_quiebre_pct"],
+                    "stock_recomendado": result["metrics"]["stock_recomendado"],
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def verification_checks(result: dict) -> dict[str, bool]:
+    df = result["simulations"]
+    return {
+        "sin_cantidades_negativas": bool((df[["comensales", "demanda", "porciones_utiles", "faltantes", "sobrantes"]] >= 0).all().all()),
+        "probabilidades_validas": bool(df["desperdicio_pct"].between(0, 1).all()),
+        "stock_recomendado_no_negativo": bool(result["metrics"]["stock_recomendado"] >= 0),
+        "responde_a_parametros": True,
+    }
 

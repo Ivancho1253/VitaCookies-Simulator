@@ -1,2 +1,2 @@
-"""Simulation models for the VitaCookies Streamlit app."""
+"""Academic simulation models for VitaCookies."""
 

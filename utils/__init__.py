@@ -1,2 +1,2 @@
-"""Utility helpers for VitaCookies."""
+"""Utility functions for reports and academic presentation."""
 
