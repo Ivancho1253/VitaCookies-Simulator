@@ -119,6 +119,23 @@ Tiene una sola unidad: formularios.
 Prueba que pasa si cambia la llegada, el tiempo de formulario o la capacidad.
 Ayuda a detectar la variable mas sensible.
 
+### Diagrama secuencial
+
+```mermaid
+flowchart TD
+    A["Cargar datos del formulario"] --> B["Generar llegadas de personas"]
+    B --> C["Calcular degustacion"]
+    C --> D["Calcular inicio y fin del formulario"]
+    D --> E["Contar formularios activos por minuto"]
+    E --> F{"Activos superan capacidad?"}
+    F -->|Si| G["Marcar saturacion"]
+    F -->|No| H["Marcar flujo normal"]
+    G --> I["Repetir muchas simulaciones"]
+    H --> I
+    I --> J["Calcular riesgo, pico esperado y P95"]
+    J --> K["Mostrar graficos y recomendacion"]
+```
+
 ## Simulador 2: Porciones
 
 ### Para que sirve
@@ -197,6 +214,23 @@ Tiene una sola unidad: porciones.
 
 Prueba cambios en comensales, probabilidad de prueba y desperdicio.
 Sirve para saber que supuesto cuidar mas.
+
+### Diagrama secuencial
+
+```mermaid
+flowchart TD
+    A["Cargar datos de porciones"] --> B["Simular comensales"]
+    B --> C["Calcular quienes prueban"]
+    C --> D["Estimar desperdicio"]
+    D --> E["Calcular porciones utiles"]
+    E --> F{"Demanda supera porciones utiles?"}
+    F -->|Si| G["Registrar faltante"]
+    F -->|No| H["Registrar sobrante"]
+    G --> I["Repetir muchas simulaciones"]
+    H --> I
+    I --> J["Calcular riesgo de faltante y demanda alta"]
+    J --> K["Recomendar porciones sugeridas"]
+```
 
 ## Simulador 3: Viabilidad
 
@@ -287,6 +321,25 @@ Sirve para priorizar ajustes.
 Compara el caso base contra mejoras posibles.
 Por ejemplo: mas aceptacion o menos desperdicio.
 
+### Diagrama secuencial
+
+```mermaid
+flowchart TD
+    A["Cargar costos, precio y demanda"] --> B["Simular demanda posible"]
+    B --> C["Aplicar aceptacion esperada"]
+    C --> D["Calcular unidades vendibles"]
+    D --> E["Calcular lotes necesarios"]
+    E --> F["Calcular costos e ingresos"]
+    F --> G["Calcular ganancia o perdida"]
+    G --> H{"Ganancia mayor a cero?"}
+    H -->|Si| I["Contar caso rentable"]
+    H -->|No| J["Contar caso no rentable"]
+    I --> K["Repetir muchas simulaciones"]
+    J --> K
+    K --> L["Calcular chance rentable y punto de equilibrio"]
+    L --> M["Mostrar decision y variables criticas"]
+```
+
 ## Chequeos
 
 La pestana Chequeos muestra controles internos.
@@ -303,4 +356,3 @@ Ejemplos:
 
 El simulador no predice exactamente el futuro.
 Prueba muchos futuros posibles para estimar riesgos y tomar mejores decisiones.
-
