@@ -60,11 +60,11 @@ def simulate_stock(inputs: StockInputs) -> dict:
         status = "Alto riesgo de quiebre"
         decision = f"Aumentar produccion a por lo menos {recommended} porciones."
     elif shortage_prob > 5:
-        status = "Stock ajustado"
-        decision = f"Preparar reserva o acercar el stock a {recommended} porciones."
+        status = "Porciones ajustadas"
+        decision = f"Preparar reserva o acercar la produccion a {recommended} porciones."
     else:
-        status = "Stock suficiente"
-        decision = "Mantener stock previsto y controlar desperdicio de servicio."
+        status = "Porciones suficientes"
+        decision = "Mantener la cantidad prevista y controlar desperdicio de servicio."
 
     simulations = pd.DataFrame(
         {

@@ -29,7 +29,30 @@ def _positive(value: float, fallback: float) -> float:
     return float(value) if value and value > 0 else float(fallback)
 
 
-def _single_run(inputs: DigitalFlowInputs, rng: np.random.Generator, scenario_name: str) -> tuple[dict, pd.DataFrame, pd.DataFrame]:
+def _timeline_arrays(
+    duration: int,
+    form_start: np.ndarray,
+    form_end: np.ndarray,
+    capacity: int,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    timeline_end = max(duration, float(form_end.max())) + 1
+    timeline = np.arange(0, np.ceil(timeline_end) + 1, 1)
+    starts = np.sort(form_start)
+    ends = np.sort(form_end)
+
+    active = np.searchsorted(starts, timeline, side="right") - np.searchsorted(ends, timeline, side="right")
+    new_submissions = np.searchsorted(starts, timeline + 1, side="left") - np.searchsorted(starts, timeline, side="left")
+    utilization = active / capacity
+    saturated = active > capacity
+    return timeline, active, new_submissions, utilization, saturated
+
+
+def _single_run(
+    inputs: DigitalFlowInputs,
+    rng: np.random.Generator,
+    scenario_name: str,
+    include_frames: bool = True,
+) -> tuple[dict, pd.DataFrame | None, pd.DataFrame | None]:
     scenario = SCENARIOS[scenario_name]
     duration = max(int(inputs.event_duration_min), 1)
     arrival_rate = _positive(inputs.arrival_rate_per_hour, 1) * scenario["arrival"]
@@ -51,12 +74,7 @@ def _single_run(inputs: DigitalFlowInputs, rng: np.random.Generator, scenario_na
     form_start = arrivals + tasting
     form_end = form_start + form
 
-    timeline_end = max(duration, float(form_end.max())) + 1
-    timeline = np.arange(0, np.ceil(timeline_end) + 1, 1)
-    active = np.array([np.sum((form_start <= minute) & (form_end > minute)) for minute in timeline])
-    new_submissions = np.array([np.sum((form_start >= minute) & (form_start < minute + 1)) for minute in timeline])
-    utilization = active / capacity
-    saturated = active > capacity
+    timeline, active, new_submissions, utilization, saturated = _timeline_arrays(duration, form_start, form_end, capacity)
 
     peak = int(active.max())
     peak_minute = float(timeline[int(np.argmax(active))])
@@ -92,6 +110,9 @@ def _single_run(inputs: DigitalFlowInputs, rng: np.random.Generator, scenario_na
         "decision": decision,
     }
 
+    if not include_frames:
+        return metrics, None, None
+
     people = pd.DataFrame(
         {
             "persona": np.arange(1, n + 1),
@@ -115,23 +136,32 @@ def _single_run(inputs: DigitalFlowInputs, rng: np.random.Generator, scenario_na
     return metrics, people, timeline_df
 
 
-def simulate_digital_flow(inputs: DigitalFlowInputs) -> dict:
+def simulate_digital_flow(inputs: DigitalFlowInputs, include_frames: bool = True) -> dict:
     runs = max(int(inputs.runs), 100)
     rng = np.random.default_rng(inputs.seed)
     scenario_name = inputs.scenario if inputs.scenario in SCENARIOS else "Esperado"
 
-    first_metrics, people, timeline = _single_run(inputs, rng, scenario_name)
+    first_metrics, people, timeline = _single_run(inputs, rng, scenario_name, include_frames=include_frames)
     run_rows = [first_metrics]
     for _ in range(runs - 1):
-        metrics, _, _ = _single_run(inputs, rng, scenario_name)
+        metrics, _, _ = _single_run(inputs, rng, scenario_name, include_frames=False)
         run_rows.append(metrics)
 
     run_df = pd.DataFrame(run_rows)
     prob_sat = float((run_df["minutos_saturados"] > 0).mean() * 100)
     first_metrics["probabilidad_saturacion_pct"] = prob_sat
+    first_metrics["personas_promedio"] = float(run_df["personas_simuladas"].mean())
+    first_metrics["pico_promedio"] = float(run_df["pico_carga"].mean())
+    first_metrics["pico_p50"] = float(np.percentile(run_df["pico_carga"], 50))
     first_metrics["pico_p95"] = float(np.percentile(run_df["pico_carga"], 95))
     first_metrics["minutos_saturados_promedio"] = float(run_df["minutos_saturados"].mean())
+    first_metrics["utilizacion_maxima_promedio_pct"] = float(run_df["utilizacion_maxima_pct"].mean())
+    first_metrics["tiempo_formulario_promedio"] = float(run_df["tiempo_formulario_promedio"].mean())
     first_metrics["ic95_pico"] = confidence_interval(run_df["pico_carga"])
+    first_metrics["resultado"] = (
+        f"En promedio el pico es {first_metrics['pico_promedio']:.1f} formularios activos; "
+        f"en un caso alto puede llegar a {first_metrics['pico_p95']:.0f}."
+    )
 
     if prob_sat >= 30:
         first_metrics["estado"] = "Alto riesgo de saturacion"
@@ -142,7 +172,11 @@ def simulate_digital_flow(inputs: DigitalFlowInputs) -> dict:
         first_metrics["recomendacion"] = "Pedir envios por grupos y monitorear el pico del formulario."
         first_metrics["decision"] = "Aplicar tandas de envio."
 
-    return {"metrics": first_metrics, "people": people, "timeline": timeline, "runs": run_df}
+    result = {"metrics": first_metrics, "runs": run_df}
+    if include_frames:
+        result["people"] = people
+        result["timeline"] = timeline
+    return result
 
 
 def confidence_interval(series: pd.Series, confidence: float = 0.95) -> tuple[float, float]:
@@ -158,16 +192,16 @@ def confidence_interval(series: pd.Series, confidence: float = 0.95) -> tuple[fl
 def scenario_comparison(inputs: DigitalFlowInputs) -> pd.DataFrame:
     rows = []
     for scenario in SCENARIOS:
-        result = simulate_digital_flow(DigitalFlowInputs(**{**inputs.__dict__, "scenario": scenario}))
+        result = simulate_digital_flow(DigitalFlowInputs(**{**inputs.__dict__, "scenario": scenario}), include_frames=False)
         m = result["metrics"]
         rows.append(
             {
                 "escenario": scenario,
                 "prob_saturacion_pct": m["probabilidad_saturacion_pct"],
-                "pico_carga": m["pico_carga"],
+                "pico_promedio": m["pico_promedio"],
                 "pico_p95": m["pico_p95"],
                 "minutos_saturados_promedio": m["minutos_saturados_promedio"],
-                "utilizacion_maxima_pct": m["utilizacion_maxima_pct"],
+                "utilizacion_maxima_promedio_pct": m["utilizacion_maxima_promedio_pct"],
             }
         )
     return pd.DataFrame(rows)
@@ -183,10 +217,10 @@ def sensitivity_analysis(inputs: DigitalFlowInputs) -> pd.DataFrame:
     for variable, (field, factors) in tests.items():
         for factor in factors:
             data = inputs.__dict__.copy()
-            data[field] = max(data[field] * factor, 1)
+            data[field] = max(data[field] * factor, 0.1)
             if field == "server_capacity":
                 data[field] = max(int(round(data[field])), 1)
-            result = simulate_digital_flow(DigitalFlowInputs(**data))
+            result = simulate_digital_flow(DigitalFlowInputs(**data), include_frames=False)
             rows.append(
                 {
                     "variable": variable,

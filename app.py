@@ -50,13 +50,13 @@ def css() -> None:
         header *, [data-testid="stHeader"] *, [data-testid="stToolbar"] * {
             color:#f5fff9 !important; fill:#f5fff9 !important; stroke:#f5fff9 !important;
         }
-        #MainMenu, [data-testid="stDecoration"], button[title="Deploy"], [aria-label="Deploy"] {
+        #MainMenu, [data-testid="stDecoration"], [data-testid="stAppDeployButton"], button[title="Deploy"], [aria-label="Deploy"] {
             display:none !important;
         }
         .stApp {
             background:
-                linear-gradient(180deg, rgba(255,255,255,.76), rgba(255,255,255,.28)),
-                linear-gradient(135deg, #f2f7ef 0%, #fff8ec 42%, #edf3f8 100%);
+                linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.72)),
+                linear-gradient(135deg, #f3f7ef 0%, #fff8ec 48%, #eef4f7 100%);
             color:var(--ink);
         }
         .stApp, .stApp p, .stApp span, .stApp label, .stApp div, .stApp h1, .stApp h2, .stApp h3 {
@@ -65,7 +65,7 @@ def css() -> None:
         }
         .main .block-container {
             max-width:1320px;
-            padding:1.7rem 2.2rem 3rem;
+            padding:1.05rem 2.1rem 2.4rem;
         }
         [data-testid="stSidebar"] {
             background:#111b18;
@@ -94,22 +94,22 @@ def css() -> None:
             position:relative;
             overflow:hidden;
             border:1px solid rgba(31,122,90,.18);
-            border-radius:22px;
-            padding:1.75rem 1.9rem;
+            border-radius:14px;
+            padding:1.05rem 1.2rem;
             background:
                 linear-gradient(120deg, rgba(18,84,61,.94) 0%, rgba(31,122,90,.90) 44%, rgba(224,122,63,.92) 100%);
-            box-shadow:var(--shadow);
-            margin-bottom:1rem;
+            box-shadow:0 14px 32px rgba(32,44,38,.12);
+            margin-bottom:.65rem;
         }
         .hero::after {
             content:"";
             position:absolute;
             right:-60px;
-            top:-70px;
-            width:260px;
-            height:260px;
+            top:-94px;
+            width:230px;
+            height:230px;
             border-radius:50%;
-            border:38px solid rgba(255,255,255,.12);
+            border:32px solid rgba(255,255,255,.12);
         }
         .hero-inner {
             position:relative;
@@ -120,128 +120,152 @@ def css() -> None:
             display:inline-flex;
             align-items:center;
             gap:.45rem;
-            padding:.34rem .7rem;
+            padding:.28rem .58rem;
             border-radius:999px;
             background:rgba(255,255,255,.14);
             color:#f4fff8 !important;
             border:1px solid rgba(255,255,255,.22);
-            font-size:.82rem;
+            font-size:.72rem;
             font-weight:750;
             text-transform:uppercase;
         }
         .hero h1 {
-            margin:.65rem 0 .25rem;
+            margin:.46rem 0 .18rem;
             color:#ffffff !important;
-            font-size:clamp(2.35rem,5vw,4.4rem);
+            font-size:clamp(2.05rem,4.1vw,3.4rem);
             line-height:1;
             font-weight:850;
         }
         .hero p {
             color:#f3fff5 !important;
             max-width:920px;
-            font-size:1.08rem;
-            line-height:1.55;
-            margin:.5rem 0 0;
+            font-size:1rem;
+            line-height:1.45;
+            margin:.38rem 0 0;
         }
         .hero-meta {
             display:flex;
-            gap:.65rem;
+            gap:.45rem;
             flex-wrap:wrap;
-            margin-top:1.15rem;
+            margin-top:.72rem;
         }
         .hero-chip {
             background:rgba(255,255,255,.92);
             color:#183029 !important;
             border:1px solid rgba(255,255,255,.36);
             border-radius:999px;
-            padding:.42rem .72rem;
+            padding:.34rem .58rem;
             font-weight:700;
-            font-size:.86rem;
+            font-size:.8rem;
         }
-        .card {
-            background:rgba(255,255,255,.82);
+        .workflow-strip {
+            display:grid;
+            grid-template-columns:repeat(3, minmax(0, 1fr));
+            gap:.65rem;
+            margin:.65rem 0 .75rem;
+        }
+        .workflow-step {
+            display:grid;
+            grid-template-columns:auto 1fr;
+            gap:.75rem;
+            align-items:start;
+            background:rgba(255,255,255,.86);
             border:1px solid rgba(25,45,37,.10);
-            border-radius:16px;
-            padding:1.05rem 1.05rem 1rem;
-            min-height:132px;
-            box-shadow:0 12px 30px rgba(32,44,38,.08);
+            border-radius:12px;
+            padding:.78rem .85rem;
+            box-shadow:0 8px 20px rgba(32,44,38,.06);
+            min-height:88px;
         }
-        .card h3 {
+        .workflow-step h3 {
             color:var(--leaf-dark) !important;
-            margin:.15rem 0 .48rem;
-            font-size:1.02rem;
+            margin:.05rem 0 .22rem;
+            font-size:.95rem;
             font-weight:820;
         }
-        .card p {
+        .workflow-step p {
             color:var(--muted) !important;
             margin:0;
-            line-height:1.45;
-            font-size:.94rem;
+            line-height:1.35;
+            font-size:.86rem;
         }
-        .card-kicker {
+        .step-kicker {
             display:inline-grid;
             place-items:center;
-            width:34px;
-            height:34px;
-            margin-bottom:.55rem;
-            border-radius:10px;
+            width:32px;
+            height:32px;
+            border-radius:9px;
             background:#e9f4ec;
             color:var(--leaf-dark) !important;
             font-weight:900;
+            font-size:.82rem;
         }
         .model-box {
-            background:rgba(255,255,255,.82);
+            background:rgba(255,255,255,.9);
             border:1px solid rgba(25,45,37,.10);
-            border-left:7px solid var(--carrot);
-            border-radius:16px;
-            padding:1rem 1.05rem;
-            margin:.9rem 0 1rem;
-            box-shadow:0 10px 25px rgba(32,44,38,.06);
+            border-left:5px solid var(--carrot);
+            border-radius:12px;
+            padding:.78rem .9rem;
+            margin:.75rem 0 .7rem;
+            box-shadow:0 8px 18px rgba(32,44,38,.05);
         }
         .model-box strong {
             color:#17372c !important;
-            font-size:1.05rem;
+            font-size:1rem;
         }
         .model-box br {
             display:block;
             margin:.2rem 0;
         }
+        .simple-note {
+            background:#f4faf6;
+            border:1px solid rgba(31,122,90,.18);
+            border-left:5px solid var(--leaf);
+            border-radius:12px;
+            padding:.82rem .95rem;
+            margin:.55rem 0 .85rem;
+            color:#183029 !important;
+            line-height:1.42;
+            font-weight:560;
+        }
+        .simple-note strong {
+            color:var(--leaf-dark) !important;
+        }
         .decision-grid {
             display:grid;
-            grid-template-columns:repeat(4, minmax(0, 1fr));
-            gap:.8rem;
-            margin:.3rem 0 1rem;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:.65rem;
+            margin:.25rem 0 .85rem;
         }
         .decision-card {
             background:#fff;
             border:1px solid rgba(25,45,37,.12);
-            border-radius:16px;
-            padding:1rem;
-            box-shadow:0 12px 26px rgba(32,44,38,.07);
-            min-height:132px;
+            border-radius:12px;
+            padding:.85rem;
+            box-shadow:0 8px 18px rgba(32,44,38,.05);
+            min-height:94px;
         }
         .decision-card .label {
             color:#6a756f !important;
             text-transform:uppercase;
             font-size:.74rem;
             font-weight:850;
-            margin-bottom:.45rem;
+            margin-bottom:.35rem;
         }
         .decision-card .body {
             color:#21332d !important;
-            line-height:1.38;
+            line-height:1.34;
             font-weight:560;
         }
-        .decision-card.result { border-top:5px solid var(--blue); }
-        .decision-card.interpretation { border-top:5px solid var(--gold); }
-        .decision-card.recommendation { border-top:5px solid var(--carrot); }
-        .decision-card.decision { border-top:5px solid var(--leaf); }
+        .decision-card.result { border-top:4px solid var(--blue); }
+        .decision-card.interpretation { border-top:4px solid var(--gold); }
+        .decision-card.recommendation { border-top:4px solid var(--carrot); }
+        .decision-card.decision { border-top:4px solid var(--leaf); }
         [data-testid="stMetric"] {
             background:#ffffff;
-            border-radius:16px;
-            padding:1rem;
+            border-radius:12px;
+            padding:.72rem .82rem;
             border:1px solid rgba(25,45,37,.10);
-            box-shadow:0 10px 24px rgba(32,44,38,.07);
+            box-shadow:0 8px 18px rgba(32,44,38,.05);
         }
         div[data-testid="stMetricLabel"] *,
         div[data-testid="stMetricValue"] * {
@@ -249,13 +273,14 @@ def css() -> None:
         }
         div[data-testid="stMetricValue"] * {
             font-weight:850 !important;
+            line-height:1.05 !important;
         }
         [data-testid="stForm"] {
-            background:rgba(255,255,255,.78);
-            border-radius:18px;
-            padding:1.1rem;
+            background:rgba(255,255,255,.9);
+            border-radius:12px;
+            padding:.9rem;
             border:1px solid rgba(25,45,37,.10);
-            box-shadow:0 12px 32px rgba(32,44,38,.07);
+            box-shadow:0 8px 20px rgba(32,44,38,.05);
         }
         [data-testid="stWidgetLabel"] * {
             color:#31463d !important;
@@ -265,7 +290,7 @@ def css() -> None:
         [data-baseweb="select"] > div {
             background:#ffffff !important;
             border-color:#cbd8cf !important;
-            border-radius:10px !important;
+            border-radius:8px !important;
         }
         input,
         [data-baseweb="select"] div {
@@ -276,7 +301,7 @@ def css() -> None:
             background:linear-gradient(135deg, var(--leaf) 0%, var(--leaf-dark) 100%) !important;
             color:white !important;
             border:1px solid var(--leaf-dark) !important;
-            border-radius:12px !important;
+            border-radius:10px !important;
             font-weight:850 !important;
             min-height:2.75rem;
             box-shadow:0 10px 22px rgba(31,122,90,.22);
@@ -287,23 +312,29 @@ def css() -> None:
             background:#ffffff !important;
             color:#183029 !important;
             border:1px solid rgba(31,122,90,.25) !important;
-            border-radius:12px !important;
+            border-radius:10px !important;
             font-weight:760 !important;
         }
         .stTabs [data-baseweb="tab-list"] {
             gap:.5rem;
-            background:rgba(255,255,255,.58);
+            position:sticky;
+            top:3.45rem;
+            z-index:3;
+            overflow-x:auto;
+            background:rgba(255,255,255,.86);
+            backdrop-filter:blur(10px);
             border:1px solid rgba(25,45,37,.10);
-            padding:.42rem;
-            border-radius:16px;
-            box-shadow:0 10px 24px rgba(32,44,38,.06);
+            padding:.36rem;
+            border-radius:12px;
+            box-shadow:0 8px 18px rgba(32,44,38,.06);
         }
         .stTabs [data-baseweb="tab"] {
             background:transparent;
-            border-radius:12px;
+            border-radius:9px;
             color:#263a33 !important;
-            padding:.62rem .95rem;
+            padding:.5rem .82rem;
             font-weight:780;
+            white-space:nowrap;
         }
         .stTabs [data-baseweb="tab"] * {
             color:#263a33 !important;
@@ -324,17 +355,35 @@ def css() -> None:
         [data-testid="stExpander"] {
             background:rgba(255,255,255,.68);
             border:1px solid rgba(25,45,37,.10);
-            border-radius:14px;
-            box-shadow:0 8px 20px rgba(32,44,38,.05);
+            border-radius:10px;
+            box-shadow:0 6px 14px rgba(32,44,38,.04);
         }
         [data-testid="stDataFrame"] {
             border-radius:14px;
             overflow:hidden;
         }
         @media (max-width: 900px) {
-            .main .block-container { padding:1rem; }
+            .main .block-container { padding:.85rem 1rem 1.6rem; }
             .decision-grid { grid-template-columns:1fr; }
-            .hero { padding:1.35rem; }
+            .hero { padding:1rem; }
+            .hero h1 { font-size:2.25rem; }
+            .hero p { font-size:.95rem; line-height:1.4; }
+            .workflow-strip {
+                display:flex;
+                gap:.55rem;
+                overflow-x:auto;
+                padding-bottom:.15rem;
+                scroll-snap-type:x proximity;
+            }
+            .workflow-step {
+                min-width:252px;
+                min-height:96px;
+                scroll-snap-align:start;
+            }
+            .stTabs [data-baseweb="tab-list"] {
+                top:2.95rem;
+                border-radius:10px;
+            }
         }
 
         /* Contrast fixes for Streamlit/BaseWeb components. Keep these last. */
@@ -349,6 +398,7 @@ def css() -> None:
         [data-testid="stToolbar"] [aria-label="Deploy"],
         [data-testid="stToolbar"] button[title="Deploy"],
         [data-testid="stDeployButton"],
+        [data-testid="stAppDeployButton"],
         [data-testid="stActionButton"] {
             display:none !important;
         }
@@ -409,10 +459,74 @@ def css() -> None:
             color:#ffffff !important;
             -webkit-text-fill-color:#ffffff !important;
         }
+        [data-testid="stNumberInput"] input,
+        [data-testid="stNumberInput"] input[type="number"],
+        [data-testid="stNumberInput"] [data-baseweb="input"] input,
+        [data-testid="stNumberInput"] [data-baseweb="input"] * {
+            color:#ffffff !important;
+            -webkit-text-fill-color:#ffffff !important;
+            caret-color:#ffffff !important;
+        }
+        [data-testid="stNumberInput"] [data-baseweb="input"],
+        [data-testid="stNumberInput"] [data-baseweb="input"] > div {
+            background:#252831 !important;
+            border-color:#3d4350 !important;
+        }
         [data-testid="stSelectbox"] [data-baseweb="select"] *,
         [data-testid="stSelectbox"] [data-baseweb="select"] div {
             color:#10201a !important;
             -webkit-text-fill-color:#10201a !important;
+        }
+        .main [data-testid="stNumberInput"] input,
+        .main [data-testid="stNumberInput"] input[type="number"],
+        .main [data-testid="stNumberInput"] [data-baseweb="input"] input,
+        .main [data-testid="stNumberInput"] [data-baseweb="input"] * {
+            color:#10201a !important;
+            -webkit-text-fill-color:#10201a !important;
+            caret-color:#10201a !important;
+        }
+        .main [data-testid="stNumberInput"] [data-baseweb="input"],
+        .main [data-testid="stNumberInput"] [data-baseweb="input"] > div {
+            background:#ffffff !important;
+            border-color:#cbd8cf !important;
+        }
+        [data-testid="stMain"] [data-testid="stNumberInput"] input,
+        [data-testid="stMain"] [data-testid="stNumberInput"] input[type="number"],
+        [data-testid="stMain"] [data-testid="stNumberInput"] [data-baseweb="input"] input,
+        [data-testid="stMain"] [data-testid="stNumberInput"] [data-baseweb="input"] * {
+            color:#10201a !important;
+            -webkit-text-fill-color:#10201a !important;
+            caret-color:#10201a !important;
+        }
+        [data-testid="stMain"] [data-testid="stNumberInput"] [data-baseweb="input"],
+        [data-testid="stMain"] [data-testid="stNumberInput"] [data-baseweb="input"] > div {
+            background:#ffffff !important;
+            border-color:#cbd8cf !important;
+        }
+        [data-testid="stMain"] [data-testid="stNumberInput"] button {
+            background:#eef4ef !important;
+            color:#10201a !important;
+            border-left:1px solid #cbd8cf !important;
+        }
+        [data-testid="stMain"] [data-testid="stNumberInput"] button *,
+        [data-testid="stMain"] [data-testid="stNumberInput"] button svg {
+            color:#10201a !important;
+            fill:#10201a !important;
+            stroke:#10201a !important;
+        }
+        [data-testid="stPlotlyChart"] svg text {
+            fill:#17372c !important;
+            opacity:1 !important;
+        }
+        [data-testid="stPlotlyChart"] .legendtext,
+        [data-testid="stPlotlyChart"] .legendtitletext,
+        [data-testid="stPlotlyChart"] .xtick text,
+        [data-testid="stPlotlyChart"] .ytick text,
+        [data-testid="stPlotlyChart"] .xtitle,
+        [data-testid="stPlotlyChart"] .ytitle,
+        [data-testid="stPlotlyChart"] .colorbar text {
+            fill:#263a33 !important;
+            opacity:1 !important;
         }
         </style>
         """,
@@ -423,6 +537,12 @@ def css() -> None:
 def init_state() -> None:
     for key in ["digital", "stock", "viability", "verification"]:
         st.session_state.setdefault(key, None if key != "verification" else {})
+    if st.session_state.get("_model_cache_version") != MODEL_CACHE_VERSION:
+        st.session_state.digital = None
+        st.session_state.stock = None
+        st.session_state.viability = None
+        st.session_state.verification = {}
+        st.session_state["_model_cache_version"] = MODEL_CACHE_VERSION
     if st.session_state.digital is None:
         st.session_state.digital = simulate_digital_post(DigitalPostInputs())
         st.session_state.verification["Formulario digital"] = verification_checks(st.session_state.digital)
@@ -434,19 +554,209 @@ def init_state() -> None:
         st.session_state.verification["Viabilidad"] = verification_checks(st.session_state.viability)
 
 
+CHART_TEXT = "#17372c"
+CHART_MUTED = "#4f6259"
+CHART_GRID = "#dfe8df"
+CHART_AXIS = "#b7c6bd"
+CHART_LABELS = {
+    "minuto": "Minuto",
+    "utilizacion_pct": "Utilizacion (%)",
+    "formularios_activos": "Formularios activos",
+    "capacidad": "Capacidad",
+    "variable": "Dato que cambia",
+    "factor": "Cambio aplicado",
+    "factor_label": "Cambio aplicado",
+    "value": "Valor",
+    "prob_saturacion_pct": "Riesgo de saturacion (%)",
+    "pico_p95": "Pico prudente (P95)",
+    "minutos_saturados_promedio": "Minutos saturados promedio",
+    "prob_quiebre_pct": "Riesgo de faltante (%)",
+    "stock_recomendado": "Porciones sugeridas",
+    "prob_rentabilidad_pct": "Chance de rentabilidad (%)",
+    "ganancia_promedio": "Ganancia promedio ($)",
+    "impacto_ganancia": "Impacto en ganancia",
+    "demanda": "Demanda",
+    "sobrantes": "Sobrantes",
+    "ganancia": "Ganancia",
+    "demanda_efectiva": "Demanda efectiva",
+    "aceptacion": "Aceptacion",
+    "aceptacion_pct": "Aceptacion (%)",
+    "mejora": "Mejora",
+}
+RUNS_HELP = "Cantidad de veces que el modelo repite el experimento virtual para estimar probabilidades, promedios y percentiles."
+MODEL_CACHE_VERSION = "post-test-observed-v1"
+
+
+def factor_label(factor: float) -> str:
+    pct = int(round((float(factor) - 1) * 100))
+    if pct == 0:
+        return "Base"
+    return f"{pct:+d}%"
+
+
+def chart_label(value: object) -> str:
+    text = str(value)
+    return CHART_LABELS.get(text, text.replace("_", " ").capitalize())
+
+
 def polish_chart(fig: go.Figure, height: int = 390) -> go.Figure:
+    for trace in fig.data:
+        if getattr(trace, "name", None):
+            trace.name = chart_label(trace.name)
+
+    for axis_name in ("xaxis", "yaxis"):
+        axis = getattr(fig.layout, axis_name, None)
+        if axis and axis.title and axis.title.text:
+            axis.title.text = chart_label(axis.title.text)
+
+    if fig.layout.legend and fig.layout.legend.title and fig.layout.legend.title.text:
+        fig.layout.legend.title.text = chart_label(fig.layout.legend.title.text)
+
     fig.update_layout(
         height=height,
         paper_bgcolor="rgba(255,255,255,0)",
         plot_bgcolor="#ffffff",
-        font=dict(family="Segoe UI, Arial, sans-serif", color="#25342f", size=13),
-        title=dict(font=dict(size=18, color="#17372c"), x=0.02, xanchor="left"),
-        margin=dict(l=34, r=24, t=62, b=36),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        font=dict(family="Segoe UI, Arial, sans-serif", color=CHART_TEXT, size=13),
+        title=dict(font=dict(size=18, color=CHART_TEXT), x=0.02, xanchor="left"),
+        margin=dict(l=52, r=28, t=68, b=54),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.03,
+            xanchor="right",
+            x=1,
+            font=dict(color=CHART_TEXT, size=12),
+            title=dict(font=dict(color=CHART_MUTED, size=12)),
+        ),
+        hoverlabel=dict(bgcolor="#ffffff", bordercolor=CHART_AXIS, font=dict(color=CHART_TEXT)),
     )
-    fig.update_xaxes(showgrid=False, linecolor="#d8ded3", zeroline=False)
-    fig.update_yaxes(gridcolor="#e9eee7", linecolor="#d8ded3", zeroline=False)
+    fig.update_xaxes(
+        showgrid=False,
+        linecolor=CHART_AXIS,
+        zeroline=False,
+        tickfont=dict(color=CHART_MUTED, size=12),
+        title_font=dict(color=CHART_TEXT, size=13),
+        tickcolor=CHART_AXIS,
+        ticks="outside",
+    )
+    fig.update_yaxes(
+        gridcolor=CHART_GRID,
+        linecolor=CHART_AXIS,
+        zeroline=False,
+        tickfont=dict(color=CHART_MUTED, size=12),
+        title_font=dict(color=CHART_TEXT, size=13),
+        tickcolor=CHART_AXIS,
+        ticks="outside",
+    )
+    fig.update_coloraxes(
+        colorbar=dict(
+            tickfont=dict(color=CHART_MUTED, size=12),
+            title=dict(font=dict(color=CHART_TEXT, size=13)),
+            outlinecolor=CHART_AXIS,
+        )
+    )
+    fig.update_annotations(font_color=CHART_TEXT)
     return fig
+
+
+def bar_chart(
+    data,
+    x: str,
+    y: str,
+    title: str,
+    y_title: str,
+    height: int = 340,
+    color: str = "#1f7a5a",
+) -> go.Figure:
+    fig = px.bar(data, x=x, y=y, title=title, text=y, color_discrete_sequence=[color])
+    fig.update_traces(texttemplate="%{text:.1f}", textposition="outside", cliponaxis=False)
+    fig.update_layout(yaxis_title=y_title, xaxis_title=None)
+    return polish_chart(fig, height)
+
+
+def grouped_bar_chart(
+    data,
+    x: str,
+    y: str,
+    color: str,
+    title: str,
+    y_title: str,
+    height: int = 340,
+) -> go.Figure:
+    fig = px.bar(data, x=x, y=y, color=color, barmode="group", title=title, text=y)
+    fig.update_traces(texttemplate="%{text:.1f}", textposition="outside", cliponaxis=False)
+    fig.update_layout(yaxis_title=y_title, xaxis_title=None)
+    return polish_chart(fig, height)
+
+
+def simple_note(body: str) -> None:
+    st.markdown(f'<div class="simple-note"><strong>En simple:</strong> {escape(body)}</div>', unsafe_allow_html=True)
+
+
+@st.cache_data(show_spinner=False)
+def compute_digital_result(
+    arrival: float,
+    duration: int,
+    tasting: float,
+    form_time: float,
+    capacity: int,
+    runs: int,
+    scenario: str,
+    seed: int,
+    cache_version: str,
+) -> tuple[dict, dict[str, bool]]:
+    inputs = DigitalFlowInputs(arrival, duration, tasting, form_time, capacity, runs, scenario, seed)
+    result = simulate_digital_flow(inputs)
+    result["scenarios"] = digital_scenarios(inputs)
+    result["sensitivity"] = digital_sensitivity(inputs)
+    return result, digital_verification(result)
+
+
+@st.cache_data(show_spinner=False)
+def compute_stock_result(
+    initial: int,
+    diners: int,
+    trial: float,
+    waste: float,
+    safety: float,
+    runs: int,
+    scenario: str,
+    seed: int,
+    cache_version: str,
+) -> tuple[dict, dict[str, bool]]:
+    inputs = StockInputs(initial, diners, trial, waste, safety, runs, scenario, seed + 100)
+    result = simulate_stock(inputs)
+    result["scenarios"] = stock_scenarios(inputs)
+    result["sensitivity"] = stock_sensitivity(inputs)
+    return result, stock_verification(result)
+
+
+@st.cache_data(show_spinner=False)
+def compute_viability_result(
+    batch_cost: float,
+    units: int,
+    fixed: float,
+    waste: float,
+    price: float,
+    demand: int,
+    acceptance: float,
+    runs: int,
+    scenario: str,
+    seed: int,
+    cache_version: str,
+) -> tuple[dict, dict[str, bool]]:
+    inputs = ViabilityInputs(batch_cost, units, fixed, waste, price, demand, acceptance, runs, scenario, seed + 200)
+    result = simulate_viability(inputs)
+    result["scenarios"] = viability_scenarios(inputs)
+    result["sensitivity"] = viability_sensitivity(inputs)
+    result["critical"] = critical_variables(result["sensitivity"])
+    result["impacts"] = improvement_impacts(inputs)
+    return result, viability_verification(result)
+
+
+@st.cache_data(show_spinner=False)
+def cached_docx_report(markdown_text: str) -> bytes:
+    return generate_docx_report(markdown_text)
 
 
 def hero() -> None:
@@ -454,9 +764,9 @@ def hero() -> None:
         """
         <div class="hero">
             <div class="hero-inner">
-                <div class="eyebrow">Modelos y Simulacion aplicada</div>
+                <div class="eyebrow">Analisis post-testeo</div>
                 <h1>VitaCookies</h1>
-                <p>Tablero post-testeo para analizar los datos reales del formulario, el stock producido y la viabilidad observada de VitaCookies.</p>
+                <p>Analiza los datos reales del formulario, el stock producido y la viabilidad observada del testeo sensorial.</p>
                 <div class="hero-meta">
                     <span class="hero-chip">Datos reales</span>
                     <span class="hero-chip">Post-testeo</span>
@@ -468,15 +778,30 @@ def hero() -> None:
         """,
         unsafe_allow_html=True,
     )
-    c1, c2, c3 = st.columns(3)
-    c1.markdown('<div class="card"><div class="card-kicker">01</div><h3>Flujo digital</h3><p>Resume respuestas reales, horario de carga y pico observado del formulario.</p></div>', unsafe_allow_html=True)
-    c2.markdown('<div class="card"><div class="card-kicker">02</div><h3>Stock sensorial</h3><p>Compara galletitas producidas, consumidas y sobrantes del testeo.</p></div>', unsafe_allow_html=True)
-    c3.markdown('<div class="card"><div class="card-kicker">03</div><h3>Decision comercial</h3><p>Relaciona aceptacion real, costos cargados, precio e indicadores sensoriales.</p></div>', unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div class="workflow-strip">
+            <div class="workflow-step">
+                <div class="step-kicker">01</div>
+                <div><h3>Formulario</h3><p>Resume respuestas reales, horario de carga y pico observado.</p></div>
+            </div>
+            <div class="workflow-step">
+                <div class="step-kicker">02</div>
+                <div><h3>Stock</h3><p>Compara galletitas producidas, consumidas y sobrantes.</p></div>
+            </div>
+            <div class="workflow-step">
+                <div class="step-kicker">03</div>
+                <div><h3>Viabilidad</h3><p>Relaciona aceptacion real, precio, costos y resultado observado.</p></div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def model_box(key: str) -> None:
     card = MODEL_CARDS[key]
-    with st.expander("Modelado formal del simulador"):
+    with st.expander("Detalles del modelo (opcional)"):
         st.markdown(
             f"""
             - **Sistema:** {card['system']}
@@ -495,24 +820,24 @@ def model_box(key: str) -> None:
 
 
 def decision_panel(metrics: dict) -> None:
-    st.markdown("### Resultado, interpretacion y decision")
+    st.markdown("### Lectura rapida")
     st.markdown(
         f"""
         <div class="decision-grid">
             <div class="decision-card result">
-                <div class="label">Resultado</div>
+                <div class="label">Que paso</div>
                 <div class="body">{escape(str(metrics["resultado"]))}</div>
             </div>
             <div class="decision-card interpretation">
-                <div class="label">Interpretacion</div>
+                <div class="label">Que significa</div>
                 <div class="body">{escape(str(metrics["interpretacion"]))}</div>
             </div>
             <div class="decision-card recommendation">
-                <div class="label">Recomendacion</div>
+                <div class="label">Que conviene hacer</div>
                 <div class="body">{escape(str(metrics["recomendacion"]))}</div>
             </div>
             <div class="decision-card decision">
-                <div class="label">Decision sugerida</div>
+                <div class="label">Decision</div>
                 <div class="body">{escape(str(metrics["decision"]))}</div>
             </div>
         </div>
@@ -522,7 +847,7 @@ def decision_panel(metrics: dict) -> None:
 
 
 def digital_tab() -> None:
-    st.markdown('<div class="model-box"><strong>Post-testeo 1: flujo real del formulario</strong><br><span>Analisis deterministico de respuestas registradas entre 08:10 y 09:32.</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="model-box"><strong>Formulario post-testeo</strong><br><span>Analisis deterministico de respuestas registradas entre 08:10 y 09:32.</span></div>', unsafe_allow_html=True)
     model_box("digital")
     with st.form("digital_form"):
         a, b, c = st.columns(3)
@@ -533,10 +858,11 @@ def digital_tab() -> None:
         with c:
             capacity = st.number_input("Capacidad aceptable por minuto", 1, 500, 20, 1)
         submitted = st.form_submit_button("Actualizar analisis digital")
-    if submitted or st.session_state.digital is None:
+    if submitted:
         result = simulate_digital_post(DigitalPostInputs(responses, duration, capacity))
         st.session_state.digital = result
         st.session_state.verification["Formulario digital"] = verification_checks(result)
+        st.success("Analisis digital actualizado.")
     result = st.session_state.digital
     m = result["metrics"]
     k = st.columns(5)
@@ -544,16 +870,20 @@ def digital_tab() -> None:
     k[1].metric("Duracion", f"{m['duracion_recoleccion_min']} min")
     k[2].metric("Pico/min", f"{m['pico_respuestas_minuto']}")
     k[3].metric("Min. saturados", f"{m['minutos_saturados']}")
-    k[4].metric("Utilizacion max.", f"{m['utilizacion_maxima_pct']:.1f}%")
+    k[4].metric("Uso max.", f"{m['utilizacion_maxima_pct']:.1f}%")
+    simple_note(
+        f"el pico observado fue de {m['pico_respuestas_minuto']} respuestas en un minuto. "
+        "No se usan corridas aleatorias: la lectura sale de las marcas horarias reales."
+    )
     tl = result["timeline"]
     c1, c2 = st.columns(2)
-    c1.plotly_chart(polish_chart(px.bar(tl, x="minuto", y="respuestas", title="Respuestas reales por minuto"), 380), use_container_width=True)
-    c2.plotly_chart(polish_chart(px.line(tl, x="minuto", y="acumulado", title="Respuestas acumuladas"), 380), use_container_width=True)
+    c1.plotly_chart(polish_chart(px.bar(tl, x="minuto", y="respuestas", title="Respuestas reales por minuto"), 360), use_container_width=True)
+    c2.plotly_chart(polish_chart(px.line(tl, x="minuto", y="acumulado", title="Respuestas acumuladas"), 360), use_container_width=True)
     decision_panel(m)
 
 
 def stock_tab() -> None:
-    st.markdown('<div class="model-box"><strong>Post-testeo 2: stock real de galletitas</strong><br><span>Calculo con unidades producidas, consumidas y sobrantes observadas.</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="model-box"><strong>Stock real de galletitas</strong><br><span>Calculo con unidades producidas, consumidas y sobrantes observadas.</span></div>', unsafe_allow_html=True)
     model_box("stock")
     with st.form("stock_form"):
         a, b, c = st.columns(3)
@@ -564,10 +894,11 @@ def stock_tab() -> None:
         with c:
             responses = st.number_input("Respuestas del formulario", 1, 5000, 44, 1, key="stock_responses")
         submitted = st.form_submit_button("Actualizar analisis de stock")
-    if submitted or st.session_state.stock is None:
+    if submitted:
         result = simulate_stock_post(StockPostInputs(produced, leftover, responses))
         st.session_state.stock = result
         st.session_state.verification["Stock"] = verification_checks(result)
+        st.success("Analisis de stock actualizado.")
     result = st.session_state.stock
     m = result["metrics"]
     k = st.columns(5)
@@ -576,12 +907,16 @@ def stock_tab() -> None:
     k[2].metric("Sobrantes", f"{m['galletitas_sobrantes']}")
     k[3].metric("Consumo", f"{m['consumo_pct']:.1f}%")
     k[4].metric("Sugeridas", f"{m['produccion_sugerida_proximo_testeo']}")
-    st.plotly_chart(polish_chart(px.bar(result["rows"], x="concepto", y="unidades", title="Balance real de stock"), 380), use_container_width=True)
+    simple_note(
+        f"se consumieron {m['galletitas_consumidas']} de {m['galletitas_producidas']} galletitas. "
+        f"El sobrante aproximado fue {m['sobrante_pct']:.1f}%."
+    )
+    st.plotly_chart(polish_chart(px.bar(result["rows"], x="concepto", y="unidades", title="Balance real de stock"), 360), use_container_width=True)
     decision_panel(m)
 
 
 def viability_tab() -> None:
-    st.markdown('<div class="model-box"><strong>Post-testeo 3: aceptacion y viabilidad observada</strong><br><span>Calculo deterministico con aceptacion del Excel, consumo real, precio y costos cargados.</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="model-box"><strong>Aceptacion y viabilidad observada</strong><br><span>Calculo deterministico con aceptacion del Excel, consumo real, precio y costos cargados.</span></div>', unsafe_allow_html=True)
     model_box("viability")
     default_consumed = int(st.session_state.stock["metrics"]["galletitas_consumidas"]) if st.session_state.stock else 45
     with st.form("viability_form"):
@@ -597,10 +932,11 @@ def viability_tab() -> None:
             positive = st.number_input("Respuestas positivas", 0, 10000, ACCEPTANCE_SUMMARY["positive_satisfaction"], 1)
             total = st.number_input("Respuestas de aceptabilidad", 1, 10000, ACCEPTANCE_SUMMARY["responses"], 1)
         submitted = st.form_submit_button("Actualizar viabilidad")
-    if submitted or st.session_state.viability is None:
+    if submitted:
         result = simulate_viability_post(ViabilityPostInputs(batch_cost, fixed, price, produced, consumed, positive, total))
         st.session_state.viability = result
         st.session_state.verification["Viabilidad"] = verification_checks(result)
+        st.success("Viabilidad actualizada.")
     result = st.session_state.viability
     m = result["metrics"]
     break_even = "No alcanzable" if m["punto_equilibrio_unidades"] == float("inf") else f"{m['punto_equilibrio_unidades']:.0f}"
@@ -610,22 +946,26 @@ def viability_tab() -> None:
     k[2].metric("Ganancia obs.", f"${m['ganancia_observada']:,.0f}")
     k[3].metric("Costo/u cons.", f"${m['costo_unitario_consumido']:,.2f}")
     k[4].metric("Punto equilibrio", break_even)
+    simple_note(
+        f"la aceptacion positiva fue {m['aceptacion_positiva_pct']:.1f}%. "
+        "La textura/crocancia queda como el principal punto de mejora observado."
+    )
     c1, c2 = st.columns(2)
-    c1.plotly_chart(polish_chart(px.bar(result["scores"], x="atributo", y="promedio", title="Puntajes descriptivos promedio"), 380), use_container_width=True)
+    c1.plotly_chart(polish_chart(px.bar(result["scores"], x="atributo", y="promedio", title="Puntajes descriptivos promedio"), 360), use_container_width=True)
     financial = px.bar(
         x=["Ingresos", "Costo total", "Ganancia"],
         y=[m["ingresos_observados"], m["costo_total"], m["ganancia_observada"]],
         title="Resultado economico observado",
     )
-    c2.plotly_chart(polish_chart(financial, 380), use_container_width=True)
+    c2.plotly_chart(polish_chart(financial, 360), use_container_width=True)
     decision_panel(m)
 
 
 def verification_validation_section() -> None:
-    st.header("Verificacion y validacion")
-    with st.expander("Verificacion computacional"):
+    st.header("Chequeos")
+    with st.expander("Chequeos internos"):
         if not st.session_state.verification:
-            st.info("Ejecuta los simuladores para completar los chequeos.")
+            st.info("Carga los datos post-testeo para completar los chequeos.")
         for model, checks in st.session_state.verification.items():
             st.subheader(model)
             for name, ok in checks.items():
@@ -633,7 +973,7 @@ def verification_validation_section() -> None:
     with st.expander("Validacion contra el evento real"):
         st.markdown(
             """
-            Esta version ya esta validada contra el evento real porque usa las mediciones del testeo:
+            Esta version ya usa las mediciones del testeo:
 
             - respuestas reales del formulario;
             - horario real de carga y pico por minuto;
@@ -662,31 +1002,21 @@ def data_guidance() -> None:
 
 def report_buttons() -> None:
     markdown = generate_markdown_report(
-        {"digital": st.session_state.digital, "stock": st.session_state.stock, "viability": st.session_state.viability},
+        {
+            "digital": st.session_state.digital,
+            "stock": st.session_state.stock,
+            "viability": st.session_state.viability,
+        },
         st.session_state.verification,
     )
     st.download_button("Generar Informe Markdown", markdown, "informe_vitacookies.md", "text/markdown", use_container_width=True)
-    st.download_button("Generar Informe DOCX", generate_docx_report(markdown), "informe_vitacookies.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True)
-
-
-def oral_defense() -> None:
-    st.header("Guia para defensa oral")
-    st.markdown(
-        """
-        - **Formulario digital:** mostrar que hubo 44 respuestas reales y un pico bajo de carga por minuto.
-        - **Stock:** explicar que se produjeron 50 galletitas, se consumieron 45 y sobraron 5 aproximadamente.
-        - **Aceptacion:** remarcar que 41 de 42 respuestas de aceptabilidad fueron positivas.
-        - **Mejora:** justificar que la textura/crocancia es el principal ajuste recomendado por los comentarios.
-        - **Conclusion:** la herramienta ya no estima incertidumbre previa; ahora resume evidencia real para decidir.
-        """
-    )
+    st.download_button("Generar Informe DOCX", cached_docx_report(markdown), "informe_vitacookies.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True)
 
 
 def main() -> None:
     css()
     init_state()
     hero()
-    data_guidance()
     with st.sidebar:
         st.title("VitaCookies")
         st.caption("Panel post-testeo")
@@ -694,7 +1024,9 @@ def main() -> None:
         st.divider()
         st.caption("Entregables")
         report_buttons()
-    tabs = st.tabs(["Flujo digital", "Stock", "Viabilidad", "Verificacion", "Defensa oral"])
+        st.divider()
+        data_guidance()
+    tabs = st.tabs(["Formulario", "Porciones", "Viabilidad", "Chequeos"])
     with tabs[0]:
         digital_tab()
     with tabs[1]:
@@ -703,8 +1035,6 @@ def main() -> None:
         viability_tab()
     with tabs[3]:
         verification_validation_section()
-    with tabs[4]:
-        oral_defense()
 
 
 if __name__ == "__main__":
