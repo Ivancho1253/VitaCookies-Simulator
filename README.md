@@ -20,7 +20,7 @@ Apoyar la toma de decisiones despues del testeo sensorial mediante:
 - analisis del flujo real del formulario;
 - balance real de stock;
 - indicadores de aceptacion;
-- calculo deterministico de costos, ingresos y ganancia;
+- proyeccion deterministica de escala con costo de producir 50 galletitas;
 - verificacion;
 - informe academico automatico.
 
@@ -48,9 +48,9 @@ Analiza respuestas reales por minuto, acumulado, pico observado y utilizacion ma
 
 Compara galletitas producidas, consumidas y sobrantes. Sugiere una cantidad para un proximo testeo similar.
 
-### 3. Aceptacion y viabilidad
+### 3. Aceptabilidad y escala productiva
 
-Usa aceptacion real del formulario y permite cargar costo/precio para calcular ingresos, costo unitario, ganancia observada y punto de equilibrio.
+Usa la aceptabilidad real del formulario, 41 respuestas positivas sobre 42, y permite cargar el costo de producir 50 galletitas cuando este confirmado. Con ese unico costo, el precio unitario y una cantidad objetivo, proyecta costo unitario, ingresos, ganancia estimada y precio de equilibrio para producir a mayor escala.
 
 ## Informe automatico
 

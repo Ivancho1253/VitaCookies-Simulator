@@ -550,7 +550,7 @@ def init_state() -> None:
         st.session_state.stock = simulate_stock_post(StockPostInputs())
         st.session_state.verification["Stock"] = verification_checks(st.session_state.stock)
     if st.session_state.viability is None:
-        st.session_state.viability = simulate_viability_post(ViabilityPostInputs(4500.0, 0.0, 180.0))
+        st.session_state.viability = simulate_viability_post(ViabilityPostInputs(0.0, 0.0, 500))
         st.session_state.verification["Viabilidad"] = verification_checks(st.session_state.viability)
 
 
@@ -766,7 +766,7 @@ def hero() -> None:
             <div class="hero-inner">
                 <div class="eyebrow">Analisis post-testeo</div>
                 <h1>VitaCookies</h1>
-                <p>Analiza los datos reales del formulario, el stock producido y la viabilidad observada del testeo sensorial.</p>
+                <p>Analiza los datos reales del formulario, el stock producido y la proyeccion para producir VitaCookies a mayor escala.</p>
                 <div class="hero-meta">
                     <span class="hero-chip">Datos reales</span>
                     <span class="hero-chip">Post-testeo</span>
@@ -791,7 +791,7 @@ def hero() -> None:
             </div>
             <div class="workflow-step">
                 <div class="step-kicker">03</div>
-                <div><h3>Viabilidad</h3><p>Relaciona aceptacion real, precio, costos y resultado observado.</p></div>
+                <div><h3>Escala</h3><p>Relaciona aceptabilidad real, precio, costo de 50 unidades y cantidad a producir.</p></div>
             </div>
         </div>
         """,
@@ -916,48 +916,47 @@ def stock_tab() -> None:
 
 
 def viability_tab() -> None:
-    st.markdown('<div class="model-box"><strong>Aceptacion y viabilidad observada</strong><br><span>Calculo deterministico con aceptacion del Excel, consumo real, precio y costos cargados.</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="model-box"><strong>Aceptabilidad y escala productiva</strong><br><span>Proyeccion para producir mas galletitas usando la aceptabilidad real del testeo: 41 respuestas positivas sobre 42.</span></div>', unsafe_allow_html=True)
     model_box("viability")
-    default_consumed = int(st.session_state.stock["metrics"]["galletitas_consumidas"]) if st.session_state.stock else 45
     with st.form("viability_form"):
         a, b, c = st.columns(3)
         with a:
-            batch_cost = st.number_input("Costo total de produccion ($)", 0.0, 10_000_000.0, 4500.0, 100.0)
-            fixed = st.number_input("Costos fijos asociados ($)", 0.0, 10_000_000.0, 0.0, 500.0)
+            cost_50 = st.number_input("Costo de producir 50 galletitas ($)", 0.0, 10_000_000.0, 0.0, 100.0)
         with b:
-            price = st.number_input("Precio de venta unitario ($)", 0.0, 100000.0, 180.0, 10.0)
-            produced = st.number_input("Unidades producidas", 1, 10000, 50, 1, key="viability_produced")
+            price = st.number_input("Precio de venta unitario ($)", 0.0, 100000.0, 0.0, 10.0)
+            target = st.number_input("Cantidad a producir", 1, 100000, 500, 50)
         with c:
-            consumed = st.number_input("Unidades consumidas", 0, 10000, default_consumed, 1)
             positive = st.number_input("Respuestas positivas", 0, 10000, ACCEPTANCE_SUMMARY["positive_satisfaction"], 1)
             total = st.number_input("Respuestas de aceptabilidad", 1, 10000, ACCEPTANCE_SUMMARY["responses"], 1)
         submitted = st.form_submit_button("Actualizar viabilidad")
     if submitted:
-        result = simulate_viability_post(ViabilityPostInputs(batch_cost, fixed, price, produced, consumed, positive, total))
+        result = simulate_viability_post(ViabilityPostInputs(cost_50, price, target, 50, positive, total))
         st.session_state.viability = result
         st.session_state.verification["Viabilidad"] = verification_checks(result)
         st.success("Viabilidad actualizada.")
     result = st.session_state.viability
     m = result["metrics"]
-    break_even = "No alcanzable" if m["punto_equilibrio_unidades"] == float("inf") else f"{m['punto_equilibrio_unidades']:.0f}"
+    break_even_price = "Pendiente" if m["precio_equilibrio"] == float("inf") else f"${m['precio_equilibrio']:,.2f}"
     k = st.columns(5)
-    k[0].metric("Aceptacion +", f"{m['aceptacion_positiva_pct']:.1f}%")
-    k[1].metric("Preferencia", f"{m['preferencia_vs_ultraprocesado_pct']:.1f}%")
-    k[2].metric("Ganancia obs.", f"${m['ganancia_observada']:,.0f}")
-    k[3].metric("Costo/u cons.", f"${m['costo_unitario_consumido']:,.2f}")
-    k[4].metric("Punto equilibrio", break_even)
+    k[0].metric("Aceptabilidad", f"{m['aceptacion_positiva_pct']:.1f}%")
+    k[1].metric("Produccion", f"{m['produccion_objetivo']}")
+    k[2].metric("Aceptadas est.", f"{m['unidades_aceptadas_estimadas']}")
+    k[3].metric("Costo/u", f"${m['costo_unitario_estimado']:,.2f}")
+    k[4].metric("Precio equilibrio", break_even_price)
     simple_note(
-        f"la aceptacion positiva fue {m['aceptacion_positiva_pct']:.1f}%. "
-        "La textura/crocancia queda como el principal punto de mejora observado."
+        f"la aceptabilidad real queda fija en {m['aceptacion_positiva_pct']:.1f}% "
+        f"({m['respuestas_positivas']} positivas sobre {m['respuestas_aceptabilidad']}). "
+        "Cuando tengas el costo real de producir 50 galletitas, cargalo aca para proyectar escala."
     )
     c1, c2 = st.columns(2)
     c1.plotly_chart(polish_chart(px.bar(result["scores"], x="atributo", y="promedio", title="Puntajes descriptivos promedio"), 360), use_container_width=True)
     financial = px.bar(
-        x=["Ingresos", "Costo total", "Ganancia"],
-        y=[m["ingresos_observados"], m["costo_total"], m["ganancia_observada"]],
-        title="Resultado economico observado",
+        x=["Ingresos estimados", "Costo estimado", "Ganancia estimada"],
+        y=[m["ingresos_estimados"], m["costo_estimado"], m["ganancia_estimada"]],
+        title="Resultado proyectado para escala",
     )
     c2.plotly_chart(polish_chart(financial, 360), use_container_width=True)
+    st.plotly_chart(polish_chart(px.line(result["scenarios"], x="produccion", y=["ingresos_estimados", "costo_estimado", "ganancia_estimada"], markers=True, title="Proyeccion por volumen de produccion"), 360), use_container_width=True)
     decision_panel(m)
 
 

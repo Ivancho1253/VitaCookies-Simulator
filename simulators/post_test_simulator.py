@@ -89,11 +89,10 @@ class StockPostInputs:
 
 @dataclass(frozen=True)
 class ViabilityPostInputs:
-    batch_cost: float
-    fixed_cost: float
+    cost_per_50_units: float
     sale_price: float
-    produced_units: int = 50
-    consumed_units: int = 45
+    target_units: int = 500
+    base_units: int = 50
     positive_acceptance: int = ACCEPTANCE_SUMMARY["positive_satisfaction"]
     acceptance_responses: int = ACCEPTANCE_SUMMARY["responses"]
 
@@ -187,48 +186,73 @@ def simulate_stock_post(inputs: StockPostInputs) -> dict:
 
 
 def simulate_viability_post(inputs: ViabilityPostInputs) -> dict:
-    produced = max(int(inputs.produced_units), 1)
-    consumed = max(min(int(inputs.consumed_units), produced), 0)
-    batch_cost = max(float(inputs.batch_cost), 0)
-    fixed_cost = max(float(inputs.fixed_cost), 0)
+    base_units = max(int(inputs.base_units), 1)
+    target_units = max(int(inputs.target_units), 1)
+    cost_per_50 = max(float(inputs.cost_per_50_units), 0)
     sale_price = max(float(inputs.sale_price), 0)
-    total_cost = batch_cost + fixed_cost
-    revenue = consumed * sale_price
-    profit = revenue - total_cost
-    unit_cost_produced = total_cost / produced
-    unit_cost_consumed = total_cost / max(consumed, 1)
-    contribution_margin = sale_price - unit_cost_consumed
-    break_even = inf if sale_price <= 0 else ceil(total_cost / sale_price)
     acceptance_rate = max(int(inputs.positive_acceptance), 0) / max(int(inputs.acceptance_responses), 1) * 100
+    acceptance_ratio = acceptance_rate / 100
+    accepted_units = int(round(target_units * acceptance_ratio))
+    unit_cost = cost_per_50 / base_units if base_units else 0
+    projected_cost = unit_cost * target_units
+    projected_revenue = accepted_units * sale_price
+    cost_pending = cost_per_50 == 0
+    projected_profit = 0 if cost_pending else projected_revenue - projected_cost
+    contribution_margin = 0 if cost_pending else sale_price * acceptance_ratio - unit_cost
+    break_even_price = inf if accepted_units == 0 or cost_pending else projected_cost / accepted_units
+    break_even_units = inf if sale_price <= 0 else ceil(projected_cost / sale_price)
 
-    if profit > 0 and acceptance_rate >= 80:
-        status = "Viable con datos observados"
-        decision = "Avanzar a una prueba comercial controlada."
+    if cost_per_50 == 0:
+        status = "Costo pendiente"
+        decision = "Cargar el costo real de producir 50 galletitas cuando lo confirmen."
+    elif projected_profit > 0 and acceptance_rate >= 80:
+        status = "Escala viable con estos datos"
+        decision = "Avanzar a una prueba de produccion mayor controlando costo unitario y textura."
     elif acceptance_rate >= 80:
-        status = "Aceptacion alta, margen a revisar"
-        decision = "Mantener la receta y ajustar precio, costos o escala."
+        status = "Aceptacion alta, costo/precio a revisar"
+        decision = "Mantener la receta, pero ajustar costo de produccion, precio o escala."
     else:
         status = "Requiere ajuste de producto"
         decision = "Mejorar atributos sensoriales antes de escalar."
 
+    scenarios = []
+    for units in [50, 100, 250, 500, 1000]:
+        accepted = int(round(units * acceptance_ratio))
+        cost = unit_cost * units
+        revenue = accepted * sale_price
+        scenarios.append(
+            {
+                "produccion": units,
+                "unidades_aceptadas_estimadas": accepted,
+                "costo_estimado": cost,
+                "ingresos_estimados": revenue,
+                "ganancia_estimada": 0 if cost_pending else revenue - cost,
+            }
+        )
+
     metrics = {
         "aceptacion_positiva_pct": acceptance_rate,
+        "respuestas_positivas": int(inputs.positive_acceptance),
+        "respuestas_aceptabilidad": int(inputs.acceptance_responses),
         "intencion_consumo_diario_pct": ACCEPTANCE_SUMMARY["daily_yes"] / ACCEPTANCE_SUMMARY["responses"] * 100,
         "preferencia_vs_ultraprocesado_pct": ACCEPTANCE_SUMMARY["ultra_preference"] / ACCEPTANCE_SUMMARY["responses"] * 100,
-        "ingresos_observados": revenue,
-        "costo_total": total_cost,
-        "ganancia_observada": profit,
-        "costo_unitario_producido": unit_cost_produced,
-        "costo_unitario_consumido": unit_cost_consumed,
-        "margen_unitario_sobre_consumidas": contribution_margin,
-        "punto_equilibrio_unidades": break_even,
+        "costo_producir_50": cost_per_50,
+        "costo_unitario_estimado": unit_cost,
+        "produccion_objetivo": target_units,
+        "unidades_aceptadas_estimadas": accepted_units,
+        "ingresos_estimados": projected_revenue,
+        "costo_estimado": projected_cost,
+        "ganancia_estimada": projected_profit,
+        "margen_unitario_ponderado": contribution_margin,
+        "precio_equilibrio": break_even_price,
+        "unidades_equilibrio": break_even_units,
         "estado": status,
-        "resultado": f"Aceptacion positiva de {acceptance_rate:.1f}% y ganancia observada de ${profit:,.0f}.",
-        "interpretacion": "La viabilidad se calcula con consumo, aceptacion, precio y costos observados/cargados.",
+        "resultado": f"Aceptabilidad de {acceptance_rate:.1f}%: {inputs.positive_acceptance} respuestas positivas sobre {inputs.acceptance_responses}.",
+        "interpretacion": "La escala usa esa aceptabilidad como tasa base y proyecta costo, ingresos y ganancia segun la cantidad a producir.",
         "recomendacion": "La textura es el atributo mas debil; conviene mejorar crocancia sin perder el sabor, que fue el mejor puntuado.",
         "decision": decision,
     }
-    return {"metrics": metrics, "scores": DESCRIPTIVE_SCORES.copy()}
+    return {"metrics": metrics, "scores": DESCRIPTIVE_SCORES.copy(), "scenarios": pd.DataFrame(scenarios)}
 
 
 def verification_checks(result: dict) -> dict[str, bool]:
@@ -236,7 +260,7 @@ def verification_checks(result: dict) -> dict[str, bool]:
     numeric_values = [
         v
         for key, v in metrics.items()
-        if isinstance(v, (int, float)) and v != inf and not key.startswith("ganancia")
+        if isinstance(v, (int, float)) and v != inf and not key.startswith("ganancia") and not key.startswith("margen")
     ]
     return {
         "sin_valores_negativos_en_metricas": bool(all(v >= 0 for v in numeric_values if "ganancia" not in str(v))),
