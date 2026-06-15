@@ -65,11 +65,12 @@ DESCRIPTIVE_SCORES = pd.DataFrame(
 
 
 ACCEPTANCE_SUMMARY = {
-    "responses": 42,
+    "responses": 50,
     "positive_satisfaction": 41,
     "top_satisfaction": 20,
     "daily_yes": 30,
     "ultra_preference": 39,
+    "survey_responses": 42,
 }
 
 
@@ -234,8 +235,8 @@ def simulate_viability_post(inputs: ViabilityPostInputs) -> dict:
         "aceptacion_positiva_pct": acceptance_rate,
         "respuestas_positivas": int(inputs.positive_acceptance),
         "respuestas_aceptabilidad": int(inputs.acceptance_responses),
-        "intencion_consumo_diario_pct": ACCEPTANCE_SUMMARY["daily_yes"] / ACCEPTANCE_SUMMARY["responses"] * 100,
-        "preferencia_vs_ultraprocesado_pct": ACCEPTANCE_SUMMARY["ultra_preference"] / ACCEPTANCE_SUMMARY["responses"] * 100,
+        "intencion_consumo_diario_pct": ACCEPTANCE_SUMMARY["daily_yes"] / ACCEPTANCE_SUMMARY["survey_responses"] * 100,
+        "preferencia_vs_ultraprocesado_pct": ACCEPTANCE_SUMMARY["ultra_preference"] / ACCEPTANCE_SUMMARY["survey_responses"] * 100,
         "costo_producir_50": cost_per_50,
         "costo_unitario_estimado": unit_cost,
         "produccion_objetivo": target_units,
@@ -252,7 +253,19 @@ def simulate_viability_post(inputs: ViabilityPostInputs) -> dict:
         "recomendacion": "La textura es el atributo mas debil; conviene mejorar crocancia sin perder el sabor, que fue el mejor puntuado.",
         "decision": decision,
     }
-    return {"metrics": metrics, "scores": DESCRIPTIVE_SCORES.copy(), "scenarios": pd.DataFrame(scenarios)}
+    financial_summary = pd.DataFrame(
+        [
+            {"concepto": "Ingresos estimados", "monto": projected_revenue},
+            {"concepto": "Costo estimado", "monto": projected_cost},
+            {"concepto": "Ganancia estimada", "monto": projected_profit},
+        ]
+    )
+    return {
+        "metrics": metrics,
+        "scores": DESCRIPTIVE_SCORES.copy(),
+        "scenarios": pd.DataFrame(scenarios),
+        "financial_summary": financial_summary,
+    }
 
 
 def verification_checks(result: dict) -> dict[str, bool]:

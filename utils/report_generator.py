@@ -45,7 +45,7 @@ MODEL_CARDS = {
         "parameters": "Costo de producir 50 galletitas, precio unitario y cantidad a producir.",
         "inputs": "Aceptabilidad real del testeo y datos economicos editables.",
         "outputs": "Aceptabilidad positiva, unidades aceptadas estimadas, costo unitario, precio de equilibrio, ingresos y ganancia estimada.",
-        "assumptions": "La aceptabilidad real de 41 respuestas positivas sobre 42 se usa como tasa base para escalar.",
+        "assumptions": "La aceptabilidad real de 41 respuestas positivas sobre 50 galletitas testeadas se usa como tasa base para escalar.",
         "restrictions": "No reemplaza un estudio de mercado ni costos industriales reales.",
         "scope": "Apoya una decision posterior sobre escala de produccion, precio y ajuste de receta.",
     },

@@ -32,13 +32,13 @@ La herramienta VitaCookies ahora trabaja con datos reales obtenidos durante el t
 - **Objetivo:** proyectar costo, ingresos y ganancia para producir mas galletitas.
 - **Entidades:** respuestas de aceptabilidad, galletitas a producir, costo de producir 50 unidades, precio e ingresos.
 - **Variables de estado:** aceptabilidad positiva, costo unitario estimado, produccion objetivo, ingresos y ganancia estimada.
-- **Entrada:** 41 respuestas positivas sobre 42 de aceptabilidad, costo de producir 50 galletitas, precio unitario y cantidad objetivo.
+- **Entrada:** 41 respuestas positivas sobre 50 galletitas testeadas, costo de producir 50 galletitas, precio unitario y cantidad objetivo.
 - **Salida:** aceptabilidad positiva, unidades aceptadas estimadas, costo unitario, precio de equilibrio y ganancia estimada.
 - **Restricciones:** el costo de producir 50 galletitas queda pendiente hasta que el equipo confirme cuanto gasto.
 
 ## Resultados sensoriales observados
 
-- **Satisfaccion positiva:** 41 de 42 respuestas.
+- **Aceptabilidad positiva:** 41 de 50 galletitas testeadas.
 - **Intencion de consumo diario o favorable:** 30 de 42 respuestas.
 - **Preferencia frente a ultraprocesado:** 39 de 42 respuestas.
 - **Color promedio:** 3.79 sobre 5.

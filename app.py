@@ -916,21 +916,25 @@ def stock_tab() -> None:
 
 
 def viability_tab() -> None:
-    st.markdown('<div class="model-box"><strong>Aceptabilidad y escala productiva</strong><br><span>Proyeccion para producir mas galletitas usando la aceptabilidad real del testeo: 41 respuestas positivas sobre 42.</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="model-box"><strong>Aceptabilidad y escala productiva</strong><br><span>Proyeccion para producir mas galletitas usando la aceptabilidad real fija del testeo: 41 respuestas positivas sobre 50.</span></div>', unsafe_allow_html=True)
     model_box("viability")
+    fixed_acceptability = ACCEPTANCE_SUMMARY["positive_satisfaction"] / ACCEPTANCE_SUMMARY["responses"] * 100
+    simple_note(
+        f"la aceptabilidad queda fija por el testeo: {fixed_acceptability:.1f}% "
+        f"({ACCEPTANCE_SUMMARY['positive_satisfaction']} respuestas positivas sobre {ACCEPTANCE_SUMMARY['responses']} galletitas testeadas). "
+        "Este dato no se modifica; solo se usa para proyectar una produccion mayor."
+    )
     with st.form("viability_form"):
         a, b, c = st.columns(3)
         with a:
             cost_50 = st.number_input("Costo de producir 50 galletitas ($)", 0.0, 10_000_000.0, 0.0, 100.0)
         with b:
             price = st.number_input("Precio de venta unitario ($)", 0.0, 100000.0, 0.0, 10.0)
-            target = st.number_input("Cantidad a producir", 1, 100000, 500, 50)
         with c:
-            positive = st.number_input("Respuestas positivas", 0, 10000, ACCEPTANCE_SUMMARY["positive_satisfaction"], 1)
-            total = st.number_input("Respuestas de aceptabilidad", 1, 10000, ACCEPTANCE_SUMMARY["responses"], 1)
+            target = st.number_input("Cantidad a producir", 1, 100000, 500, 50)
         submitted = st.form_submit_button("Actualizar viabilidad")
     if submitted:
-        result = simulate_viability_post(ViabilityPostInputs(cost_50, price, target, 50, positive, total))
+        result = simulate_viability_post(ViabilityPostInputs(cost_50, price, target))
         st.session_state.viability = result
         st.session_state.verification["Viabilidad"] = verification_checks(result)
         st.success("Viabilidad actualizada.")
@@ -949,14 +953,54 @@ def viability_tab() -> None:
         "Cuando tengas el costo real de producir 50 galletitas, cargalo aca para proyectar escala."
     )
     c1, c2 = st.columns(2)
-    c1.plotly_chart(polish_chart(px.bar(result["scores"], x="atributo", y="promedio", title="Puntajes descriptivos promedio"), 360), use_container_width=True)
-    financial = px.bar(
-        x=["Ingresos estimados", "Costo estimado", "Ganancia estimada"],
-        y=[m["ingresos_estimados"], m["costo_estimado"], m["ganancia_estimada"]],
-        title="Resultado proyectado para escala",
+    scores = result["scores"].copy()
+    score_fig = px.bar(
+        scores,
+        x="atributo",
+        y="promedio",
+        text="promedio",
+        title="Puntajes sensoriales promedio",
+        color="atributo",
     )
+    score_fig.update_traces(texttemplate="%{text:.2f}", textposition="outside")
+    score_fig.update_yaxes(range=[0, 5])
+    c1.plotly_chart(polish_chart(score_fig, 360), use_container_width=True)
+
+    financial_df = result["financial_summary"]
+    financial = px.bar(
+        financial_df,
+        x="concepto",
+        y="monto",
+        text="monto",
+        title="Resultado proyectado para la produccion elegida",
+        color="concepto",
+    )
+    financial.update_traces(texttemplate="$%{text:,.0f}", textposition="outside")
     c2.plotly_chart(polish_chart(financial, 360), use_container_width=True)
-    st.plotly_chart(polish_chart(px.line(result["scenarios"], x="produccion", y=["ingresos_estimados", "costo_estimado", "ganancia_estimada"], markers=True, title="Proyeccion por volumen de produccion"), 360), use_container_width=True)
+
+    projection = result["scenarios"].melt(
+        id_vars="produccion",
+        value_vars=["ingresos_estimados", "costo_estimado", "ganancia_estimada"],
+        var_name="indicador",
+        value_name="monto",
+    )
+    projection["indicador"] = projection["indicador"].map(
+        {
+            "ingresos_estimados": "Ingresos",
+            "costo_estimado": "Costo",
+            "ganancia_estimada": "Ganancia",
+        }
+    )
+    projection_fig = px.line(
+        projection,
+        x="produccion",
+        y="monto",
+        color="indicador",
+        markers=True,
+        title="Proyeccion por volumen de produccion",
+    )
+    projection_fig.update_yaxes(tickprefix="$")
+    st.plotly_chart(polish_chart(projection_fig, 360), use_container_width=True)
     decision_panel(m)
 
 
@@ -993,7 +1037,7 @@ def data_guidance() -> None:
 
             - **Formulario:** 44 respuestas registradas entre 08:10 y 09:32.
             - **Stock:** 50 galletitas producidas y 5 sobrantes aproximadas.
-            - **Aceptacion:** 41 respuestas positivas sobre 42 respuestas de aceptabilidad.
+            - **Aceptabilidad:** 41 respuestas positivas sobre 50 galletitas testeadas.
             - **Descriptivo:** sabor fue el atributo mejor puntuado; textura quedo como principal punto de mejora.
             """
         )

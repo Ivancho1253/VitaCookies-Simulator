@@ -11,7 +11,7 @@ Producto: galletita vegetal sustentable elaborada con avena, lentejas, manzana y
 - 50 galletitas producidas.
 - 5 galletitas sobrantes aproximadas.
 - 45 galletitas consumidas estimadas.
-- 41 respuestas positivas sobre 42 respuestas de aceptabilidad.
+- 41 respuestas positivas sobre 50 galletitas testeadas.
 
 ## Objetivo academico
 
@@ -50,7 +50,7 @@ Compara galletitas producidas, consumidas y sobrantes. Sugiere una cantidad para
 
 ### 3. Aceptabilidad y escala productiva
 
-Usa la aceptabilidad real del formulario, 41 respuestas positivas sobre 42, y permite cargar el costo de producir 50 galletitas cuando este confirmado. Con ese unico costo, el precio unitario y una cantidad objetivo, proyecta costo unitario, ingresos, ganancia estimada y precio de equilibrio para producir a mayor escala.
+Usa la aceptabilidad real fija del testeo, 41 respuestas positivas sobre 50, y permite cargar el costo de producir 50 galletitas cuando este confirmado. Con ese unico costo, el precio unitario y una cantidad objetivo, proyecta costo unitario, ingresos, ganancia estimada y precio de equilibrio para producir a mayor escala.
 
 ## Informe automatico
 
