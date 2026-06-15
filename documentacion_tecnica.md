@@ -1,96 +1,71 @@
 # Documentacion tecnica y academica
 
-## Enfoque metodologico
+## Enfoque metodologico post-testeo
 
-El proyecto VitaCookies utiliza modelos de simulacion para apoyar decisiones de Nutricion antes y despues de un testeo sensorial. La herramienta no busca certeza absoluta, sino comparar escenarios bajo incertidumbre.
+La herramienta VitaCookies ahora trabaja con datos reales obtenidos durante el testeo sensorial. Se eliminaron corridas aleatorias, escenarios hipoteticos y probabilidades simuladas. El objetivo es transformar mediciones observadas en indicadores defendibles para la toma de decisiones.
 
-## Simulador 1 - Flujo de personas y formulario digital
+## Analisis 1 - Flujo real del formulario digital
 
-- **Sistema:** evento sensorial con comensales que degustan y completan un formulario digital.
-- **Objetivo:** estimar saturacion por envios simultaneos.
-- **Entidades:** comensales, formulario, servidor/capacidad concurrente.
-- **Variables de estado:** formularios activos, utilizacion, minutos saturados.
-- **Eventos:** llegada, fin de degustacion, inicio de formulario, envio.
-- **Parametros:** tasa de llegada, duracion, tiempos promedio, capacidad.
-- **Entrada:** escenario y parametros operativos.
-- **Salida:** probabilidad de saturacion, pico, minuto pico, utilizacion y decision.
-- **Supuestos:** cada persona usa su propio celular.
-- **Restricciones:** no se modelan fallas reales de red.
-- **Alcance:** apoyo operativo al evento.
+- **Sistema:** formulario digital respondido por evaluadores durante el testeo.
+- **Objetivo:** medir carga real, duracion de recoleccion y pico por minuto.
+- **Entidades:** evaluadores, respuestas, formulario digital, capacidad operativa.
+- **Variables de estado:** respuestas por minuto, acumulado, utilizacion y minutos saturados.
+- **Eventos:** envio real de cada respuesta.
+- **Parametros:** respuestas registradas, duracion observada y capacidad aceptable por minuto.
+- **Entrada:** 44 respuestas registradas entre 08:10 y 09:32.
+- **Salida:** pico observado, utilizacion maxima y decision operativa.
+- **Restricciones:** no registra fallas de red si no aparecen reflejadas en los datos.
 
-## Simulador 2 - Stock de porciones
+## Analisis 2 - Stock real de galletitas
 
-- **Sistema:** inventario de porciones.
-- **Objetivo:** estimar quiebre y stock recomendado.
-- **Entidades:** comensales, porciones, demanda, desperdicio.
-- **Variables de estado:** porciones utiles, faltantes, sobrantes.
-- **Eventos:** asistencia, decision de probar, consumo, desperdicio.
-- **Modelo:** Monte Carlo.
-- **Salida:** probabilidad de quiebre, percentiles, sobrantes, faltantes y recomendacion.
+- **Sistema:** produccion y consumo de galletitas durante el testeo.
+- **Objetivo:** medir consumo real y sobrante final.
+- **Entidades:** galletitas producidas, galletitas consumidas, sobrantes y respuestas.
+- **Variables de estado:** producidas, consumidas, sobrantes y porcentaje de sobrante.
+- **Entrada:** 50 galletitas producidas y 5 sobrantes aproximadas.
+- **Salida:** 45 consumidas estimadas, consumo porcentual y produccion sugerida para un proximo testeo similar.
+- **Restricciones:** las sobrantes son aproximadas segun el dato informado por el equipo.
 
-## Simulador 3 - Viabilidad productiva/comercial
+## Analisis 3 - Aceptacion y viabilidad observada
 
-- **Sistema:** produccion y venta potencial.
-- **Objetivo:** estimar rentabilidad preliminar.
-- **Entidades:** lotes, unidades, demanda, consumidores, costos.
-- **Variables de estado:** costo total, ingresos, ganancia.
-- **Eventos:** produccion, desperdicio, venta.
-- **Modelo:** Monte Carlo.
-- **Salida:** costo unitario, punto de equilibrio, ganancia, probabilidad rentable.
+- **Sistema:** aceptacion sensorial y resultado economico del producto testeado.
+- **Objetivo:** calcular aceptacion real y viabilidad con costos/precio cargados.
+- **Entidades:** respuestas de aceptabilidad, unidades consumidas, costos, precio e ingresos.
+- **Variables de estado:** aceptacion positiva, ingresos, costos, ganancia y punto de equilibrio.
+- **Entrada:** 41 respuestas positivas sobre 42 de aceptabilidad, 45 consumidas estimadas y datos economicos editables.
+- **Salida:** aceptacion positiva, preferencia vs ultraprocesado, ganancia observada, costo unitario y decision.
+- **Restricciones:** los costos y el precio deben actualizarse con datos reales si el producto escala.
 
-## Escenarios
+## Resultados sensoriales observados
 
-Los escenarios modifican parametros:
-
-- **Optimista:** menor riesgo, menor desperdicio, mejor aceptacion o mayor capacidad.
-- **Esperado:** supuestos base.
-- **Pesimista:** mayor demanda concentrada, mayor desperdicio, mayores costos o menor aceptacion.
-
-## Analisis de sensibilidad
-
-Permite identificar que variable afecta mas el resultado:
-
-- tasa de envios y capacidad para formulario;
-- probabilidad de prueba y desperdicio para stock;
-- precio, costos, aceptacion y desperdicio para viabilidad.
+- **Satisfaccion positiva:** 41 de 42 respuestas.
+- **Intencion de consumo diario o favorable:** 30 de 42 respuestas.
+- **Preferencia frente a ultraprocesado:** 39 de 42 respuestas.
+- **Color promedio:** 3.79 sobre 5.
+- **Aroma promedio:** 3.32 sobre 5.
+- **Sabor promedio:** 4.06 sobre 5.
+- **Textura promedio:** 2.74 sobre 5.
 
 ## Verificacion
 
 Se controla que:
 
-- no haya tiempos negativos;
-- no haya cantidades negativas;
-- las probabilidades esten entre 0 y 1;
-- los costos no sean negativos;
-- el modelo responda ante cambios de parametros.
+- no haya cantidades negativas en las metricas operativas;
+- los datos post-testeo esten cargados;
+- no existan corridas aleatorias;
+- el informe se genere con los resultados observados.
 
-## Validacion
+## Decision academica
 
-La validacion se realiza luego del testeo sensorial. Se comparan resultados simulados contra datos reales:
-
-- asistencia real;
-- tiempo real de formulario;
-- consumo real;
-- desperdicio real;
-- aceptacion sensorial real;
-- costos reales.
-
-Con esos datos se recalibran los modelos y se ejecuta una simulacion posterior.
-
-## Limitaciones
-
-- No se modelan preferencias individuales completas.
-- La capacidad del formulario es una estimacion si no hay medicion tecnica.
-- La aceptacion sensorial se resume como variable agregada.
+El testeo muestra buena aceptacion general y un stock bien dimensionado. El principal punto de mejora esta en la textura/crocancia, mientras que el sabor aparece como el atributo mas fuerte. La decision economica depende de ajustar costos reales, precio unitario y escala de produccion.
 
 ## Defensa oral
 
 La defensa debe enfocarse en:
 
-1. problema que resuelve cada simulador;
-2. modelo usado;
-3. escenarios;
-4. sensibilidad;
-5. decision sugerida para Nutricion;
-6. validacion posterior con datos reales.
-
+1. explicar que la version actual es post-testeo;
+2. mostrar los datos reales del formulario;
+3. justificar el balance de stock con 50 producidas y 5 sobrantes;
+4. destacar aceptacion positiva y preferencia frente a ultraprocesados;
+5. proponer mejora de textura/crocancia;
+6. explicar como costo y precio determinan la viabilidad final.

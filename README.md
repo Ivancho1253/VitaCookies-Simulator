@@ -1,19 +1,27 @@
-# VitaCookies - Simuladores academicos de Modelos y Simulacion
+# VitaCookies - Analisis post-testeo
 
-Herramienta Streamlit para la evaluacion integradora intercatedra entre Ingenieria en Sistemas y Nutricion.
+Herramienta Streamlit para analizar los resultados reales del testeo sensorial de VitaCookies.
 
 Producto: galletita vegetal sustentable elaborada con avena, lentejas, manzana y zanahoria.
 
+## Datos cargados
+
+- 44 respuestas registradas en el formulario.
+- Testeo realizado el 11/6/2026 entre 08:10 y 09:32.
+- 50 galletitas producidas.
+- 5 galletitas sobrantes aproximadas.
+- 45 galletitas consumidas estimadas.
+- 41 respuestas positivas sobre 42 respuestas de aceptabilidad.
+
 ## Objetivo academico
 
-Apoyar la toma de decisiones antes y despues del testeo sensorial mediante:
+Apoyar la toma de decisiones despues del testeo sensorial mediante:
 
-- simulacion de eventos discretos;
-- simulacion Monte Carlo;
-- analisis de escenarios;
-- analisis de sensibilidad;
+- analisis del flujo real del formulario;
+- balance real de stock;
+- indicadores de aceptacion;
+- calculo deterministico de costos, ingresos y ganancia;
 - verificacion;
-- validacion posterior con datos reales;
 - informe academico automatico.
 
 ## Instalacion
@@ -30,65 +38,19 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## Simuladores
+## Modulos
 
-### 1. Flujo de personas y formulario digital
+### 1. Flujo digital
 
-Modelo: simulacion de eventos discretos.
+Analiza respuestas reales por minuto, acumulado, pico observado y utilizacion maxima frente a una capacidad aceptable por minuto.
 
-Evalua llegada de personas, degustacion, tiempo para completar/enviar formulario, concurrencia y saturacion del sistema.
+### 2. Stock de galletitas
 
-Decision que ayuda a tomar: si conviene escalonar envios, reforzar el formulario o preparar respaldo.
+Compara galletitas producidas, consumidas y sobrantes. Sugiere una cantidad para un proximo testeo similar.
 
-### 2. Stock de porciones
+### 3. Aceptacion y viabilidad
 
-Modelo: Monte Carlo.
-
-Evalua demanda variable, desperdicio, asistencia y probabilidad de consumo.
-
-Decision que ayuda a tomar: cuantas porciones preparar para evitar quiebre sin generar desperdicio excesivo.
-
-### 3. Viabilidad productiva/comercial
-
-Modelo: Monte Carlo economico.
-
-Evalua demanda, aceptacion sensorial, costos, desperdicio, precio y rentabilidad.
-
-Decision que ayuda a tomar: si el producto es viable, parcialmente viable o no viable.
-
-## Escenarios
-
-Cada simulador incluye:
-
-- Optimista;
-- Esperado;
-- Pesimista.
-
-Los escenarios modifican parametros reales del modelo, no son solo etiquetas visuales.
-
-## Verificacion
-
-La app verifica:
-
-- ausencia de tiempos negativos;
-- ausencia de cantidades negativas;
-- probabilidades validas;
-- costos no negativos;
-- respuesta frente a cambios de parametros.
-
-## Validacion
-
-Despues del evento se comparan:
-
-- asistentes simulados vs reales;
-- tiempos de formulario;
-- picos de carga;
-- porciones consumidas;
-- desperdicio real;
-- aceptacion sensorial real;
-- costos reales.
-
-Con esos datos se recalibran los parametros y se ejecuta la simulacion posterior.
+Usa aceptacion real del formulario y permite cargar costo/precio para calcular ingresos, costo unitario, ganancia observada y punto de equilibrio.
 
 ## Informe automatico
 
@@ -97,13 +59,4 @@ La barra lateral permite descargar:
 - informe Markdown;
 - informe DOCX.
 
-Incluye portada, modelos, entidades, variables, eventos, supuestos, resultados, interpretacion, recomendaciones, limitaciones, mejoras futuras y guia de defensa oral.
-
-## Guia para defensa oral
-
-1. Explicar el problema de cada simulador.
-2. Indicar el tipo de modelo usado.
-3. Mostrar escenarios y sensibilidad.
-4. Presentar resultado, interpretacion y decision.
-5. Explicar como se validara con datos reales del testeo.
-
+El informe resume resultados, interpretacion, recomendacion, decision sugerida y guia para defensa oral.
