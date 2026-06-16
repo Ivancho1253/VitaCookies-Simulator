@@ -945,14 +945,15 @@ def viability_tab() -> None:
     break_even_price = "Pendiente" if m["precio_equilibrio"] == float("inf") else f"${m['precio_equilibrio']:,.2f}"
     recommended_price = "Pendiente" if m["precio_recomendado"] == float("inf") else f"${m['precio_recomendado']:,.2f}"
     k = st.columns(5)
-    k[0].metric("Aceptabilidad", f"{m['aceptacion_positiva_pct']:.1f}%")
-    k[1].metric("Costo/u", f"${m['costo_unitario_estimado']:,.0f}")
-    k[2].metric("Aceptadas est.", f"{m['unidades_aceptadas_estimadas']}")
-    k[3].metric("Precio equilibrio", break_even_price)
+    k[0].metric("Costo total", f"${m['costo_estimado']:,.0f}")
+    k[1].metric("Vendidas est.", f"{m['unidades_aceptadas_estimadas']}")
+    k[2].metric("Sobrante est.", f"{m['unidades_no_vendidas_estimadas']}")
+    k[3].metric("Ganancia/Perdida", f"${m['ganancia_estimada']:,.0f}")
     k[4].metric("Precio recom.", recommended_price)
     simple_note(
-        f"para producir {m['produccion_objetivo']} galletitas el costo estimado es ${m['costo_estimado']:,.0f}. "
-        f"El precio de equilibrio es {break_even_price}; para ganar alrededor de {RECOMMENDED_PROFIT_MARGIN * 100:.0f}% conviene apuntar a {recommended_price} por unidad."
+        f"para producir {m['produccion_objetivo']} galletitas el costo estimado es ${m['costo_estimado']:,.0f} "
+        f"(${m['costo_unitario_estimado']:,.0f} por unidad). "
+        f"El precio minimo para no perder plata es {break_even_price}; para ganar alrededor de {RECOMMENDED_PROFIT_MARGIN * 100:.0f}% conviene apuntar a {recommended_price}."
     )
     c1, c2 = st.columns(2)
     scores = result["scores"].copy()

@@ -199,6 +199,7 @@ def simulate_viability_post(inputs: ViabilityPostInputs) -> dict:
     acceptance_rate = max(int(inputs.positive_acceptance), 0) / max(int(inputs.acceptance_responses), 1) * 100
     acceptance_ratio = acceptance_rate / 100
     accepted_units = int(round(target_units * acceptance_ratio))
+    unsold_units = max(target_units - accepted_units, 0)
     unit_cost = cost_per_50 / base_units if base_units else 0
     projected_cost = unit_cost * target_units
     projected_revenue = accepted_units * sale_price
@@ -207,16 +208,21 @@ def simulate_viability_post(inputs: ViabilityPostInputs) -> dict:
     break_even_price = inf if accepted_units == 0 else projected_cost / accepted_units
     recommended_price = inf if break_even_price == inf else break_even_price * (1 + RECOMMENDED_PROFIT_MARGIN)
     break_even_units = inf if sale_price <= 0 else ceil(projected_cost / sale_price)
+    profit_margin_pct = 0 if projected_revenue <= 0 else projected_profit / projected_revenue * 100
+    roi_pct = 0 if projected_cost <= 0 else projected_profit / projected_cost * 100
 
     if sale_price == 0:
         status = "Precio pendiente"
         decision = f"Definir un precio unitario. Para ganar algo, conviene apuntar a por lo menos ${recommended_price:,.0f} por unidad."
-    elif projected_profit > 0 and acceptance_rate >= 80:
-        status = "Escala viable con estos datos"
-        decision = f"La produccion seria rentable. Como precio recomendado, mantener al menos ${recommended_price:,.0f} por unidad."
+    elif projected_profit > 0 and sale_price >= recommended_price:
+        status = "Precio recomendable"
+        decision = f"Si vendes a ${sale_price:,.0f}, la produccion deja ganancia y supera el precio recomendado de ${recommended_price:,.0f}."
+    elif projected_profit > 0:
+        status = "Rentable, pero con margen bajo"
+        decision = f"Hay ganancia, pero para un margen mas sano conviene acercar el precio a ${recommended_price:,.0f} por unidad."
     elif acceptance_rate >= 80:
-        status = "Aceptacion alta, pero habria perdida"
-        decision = f"Subir el precio: para cubrir costos se necesita al menos ${break_even_price:,.0f}; para ganar algo, alrededor de ${recommended_price:,.0f}."
+        status = "No rentable a ese precio"
+        decision = f"No conviene vender a ${sale_price:,.0f}: no cubre el costo. Minimo ${break_even_price:,.0f}; recomendado ${recommended_price:,.0f}."
     else:
         status = "Requiere ajuste de producto"
         decision = "Mejorar atributos sensoriales antes de escalar."
@@ -224,12 +230,14 @@ def simulate_viability_post(inputs: ViabilityPostInputs) -> dict:
     scenarios = []
     for units in [50, 100, 250, 500, 1000]:
         accepted = int(round(units * acceptance_ratio))
+        unsold = max(units - accepted, 0)
         cost = unit_cost * units
         revenue = accepted * sale_price
         scenarios.append(
             {
                 "produccion": units,
                 "unidades_aceptadas_estimadas": accepted,
+                "unidades_no_vendidas_estimadas": unsold,
                 "costo_estimado": cost,
                 "ingresos_estimados": revenue,
                 "ganancia_estimada": revenue - cost,
@@ -246,18 +254,21 @@ def simulate_viability_post(inputs: ViabilityPostInputs) -> dict:
         "costo_unitario_estimado": unit_cost,
         "produccion_objetivo": target_units,
         "unidades_aceptadas_estimadas": accepted_units,
+        "unidades_no_vendidas_estimadas": unsold_units,
         "ingresos_estimados": projected_revenue,
         "costo_estimado": projected_cost,
         "ganancia_estimada": projected_profit,
         "margen_unitario_ponderado": contribution_margin,
+        "margen_ganancia_pct": profit_margin_pct,
+        "retorno_sobre_costo_pct": roi_pct,
         "precio_equilibrio": break_even_price,
         "precio_recomendado": recommended_price,
         "margen_recomendado_pct": RECOMMENDED_PROFIT_MARGIN * 100,
         "unidades_equilibrio": break_even_units,
         "estado": status,
-        "resultado": f"Aceptabilidad de {acceptance_rate:.1f}%: {inputs.positive_acceptance} respuestas positivas sobre {inputs.acceptance_responses}.",
-        "interpretacion": f"El costo fijo de referencia es ${cost_per_50:,.0f} cada 50 galletitas, equivalente a ${unit_cost:,.0f} por unidad producida.",
-        "recomendacion": "La textura es el atributo mas debil; conviene mejorar crocancia sin perder el sabor, que fue el mejor puntuado.",
+        "resultado": f"Producir {target_units} galletitas cuesta ${projected_cost:,.0f}; con aceptabilidad de {acceptance_rate:.1f}% se venderian unas {accepted_units}.",
+        "interpretacion": f"A ${sale_price:,.0f} por unidad, los ingresos estimados son ${projected_revenue:,.0f} y la ganancia/perdida seria ${projected_profit:,.0f}.",
+        "recomendacion": f"Precio recomendado: ${recommended_price:,.0f} por unidad para cubrir costos y dejar cerca de {RECOMMENDED_PROFIT_MARGIN * 100:.0f}% de margen.",
         "decision": decision,
     }
     financial_summary = pd.DataFrame(
