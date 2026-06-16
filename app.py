@@ -8,7 +8,10 @@ import plotly.graph_objects as go
 
 from simulators.post_test_simulator import (
     ACCEPTANCE_SUMMARY,
+    BASE_COST_PER_50_UNITS,
+    BASE_UNITS_FOR_COST,
     DigitalPostInputs,
+    RECOMMENDED_PROFIT_MARGIN,
     StockPostInputs,
     ViabilityPostInputs,
     simulate_digital_post,
@@ -550,7 +553,7 @@ def init_state() -> None:
         st.session_state.stock = simulate_stock_post(StockPostInputs())
         st.session_state.verification["Stock"] = verification_checks(st.session_state.stock)
     if st.session_state.viability is None:
-        st.session_state.viability = simulate_viability_post(ViabilityPostInputs(0.0, 0.0, 500))
+        st.session_state.viability = simulate_viability_post(ViabilityPostInputs(0.0, 500))
         st.session_state.verification["Viabilidad"] = verification_checks(st.session_state.viability)
 
 
@@ -919,38 +922,37 @@ def viability_tab() -> None:
     st.markdown('<div class="model-box"><strong>Aceptabilidad y escala productiva</strong><br><span>Proyeccion para producir mas galletitas usando la aceptabilidad real fija del testeo: 41 respuestas positivas sobre 50.</span></div>', unsafe_allow_html=True)
     model_box("viability")
     fixed_acceptability = ACCEPTANCE_SUMMARY["positive_satisfaction"] / ACCEPTANCE_SUMMARY["responses"] * 100
+    unit_cost = BASE_COST_PER_50_UNITS / BASE_UNITS_FOR_COST
     simple_note(
         f"la aceptabilidad queda fija por el testeo: {fixed_acceptability:.1f}% "
         f"({ACCEPTANCE_SUMMARY['positive_satisfaction']} respuestas positivas sobre {ACCEPTANCE_SUMMARY['responses']} galletitas testeadas). "
-        "Este dato no se modifica; solo se usa para proyectar una produccion mayor."
+        f"El costo tambien queda fijo: ${BASE_COST_PER_50_UNITS:,.0f} cada {BASE_UNITS_FOR_COST} galletitas, es decir ${unit_cost:,.0f} por unidad producida."
     )
     with st.form("viability_form"):
-        a, b, c = st.columns(3)
+        a, b = st.columns(2)
         with a:
-            cost_50 = st.number_input("Costo de producir 50 galletitas ($)", 0.0, 10_000_000.0, 0.0, 100.0)
-        with b:
             price = st.number_input("Precio de venta unitario ($)", 0.0, 100000.0, 0.0, 10.0)
-        with c:
+        with b:
             target = st.number_input("Cantidad a producir", 1, 100000, 500, 50)
         submitted = st.form_submit_button("Actualizar viabilidad")
     if submitted:
-        result = simulate_viability_post(ViabilityPostInputs(cost_50, price, target))
+        result = simulate_viability_post(ViabilityPostInputs(price, target))
         st.session_state.viability = result
         st.session_state.verification["Viabilidad"] = verification_checks(result)
         st.success("Viabilidad actualizada.")
     result = st.session_state.viability
     m = result["metrics"]
     break_even_price = "Pendiente" if m["precio_equilibrio"] == float("inf") else f"${m['precio_equilibrio']:,.2f}"
+    recommended_price = "Pendiente" if m["precio_recomendado"] == float("inf") else f"${m['precio_recomendado']:,.2f}"
     k = st.columns(5)
     k[0].metric("Aceptabilidad", f"{m['aceptacion_positiva_pct']:.1f}%")
-    k[1].metric("Produccion", f"{m['produccion_objetivo']}")
+    k[1].metric("Costo/u", f"${m['costo_unitario_estimado']:,.0f}")
     k[2].metric("Aceptadas est.", f"{m['unidades_aceptadas_estimadas']}")
-    k[3].metric("Costo/u", f"${m['costo_unitario_estimado']:,.2f}")
-    k[4].metric("Precio equilibrio", break_even_price)
+    k[3].metric("Precio equilibrio", break_even_price)
+    k[4].metric("Precio recom.", recommended_price)
     simple_note(
-        f"la aceptabilidad real queda fija en {m['aceptacion_positiva_pct']:.1f}% "
-        f"({m['respuestas_positivas']} positivas sobre {m['respuestas_aceptabilidad']}). "
-        "Cuando tengas el costo real de producir 50 galletitas, cargalo aca para proyectar escala."
+        f"para producir {m['produccion_objetivo']} galletitas el costo estimado es ${m['costo_estimado']:,.0f}. "
+        f"El precio de equilibrio es {break_even_price}; para ganar alrededor de {RECOMMENDED_PROFIT_MARGIN * 100:.0f}% conviene apuntar a {recommended_price} por unidad."
     )
     c1, c2 = st.columns(2)
     scores = result["scores"].copy()

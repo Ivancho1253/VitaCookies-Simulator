@@ -6,6 +6,11 @@ from math import ceil, inf
 import pandas as pd
 
 
+BASE_COST_PER_50_UNITS = 15_000.0
+BASE_UNITS_FOR_COST = 50
+RECOMMENDED_PROFIT_MARGIN = 0.20
+
+
 OBSERVED_RESPONSE_MINUTES = [
     0,
     0,
@@ -90,10 +95,10 @@ class StockPostInputs:
 
 @dataclass(frozen=True)
 class ViabilityPostInputs:
-    cost_per_50_units: float
     sale_price: float
     target_units: int = 500
-    base_units: int = 50
+    cost_per_50_units: float = BASE_COST_PER_50_UNITS
+    base_units: int = BASE_UNITS_FOR_COST
     positive_acceptance: int = ACCEPTANCE_SUMMARY["positive_satisfaction"]
     acceptance_responses: int = ACCEPTANCE_SUMMARY["responses"]
 
@@ -197,21 +202,21 @@ def simulate_viability_post(inputs: ViabilityPostInputs) -> dict:
     unit_cost = cost_per_50 / base_units if base_units else 0
     projected_cost = unit_cost * target_units
     projected_revenue = accepted_units * sale_price
-    cost_pending = cost_per_50 == 0
-    projected_profit = 0 if cost_pending else projected_revenue - projected_cost
-    contribution_margin = 0 if cost_pending else sale_price * acceptance_ratio - unit_cost
-    break_even_price = inf if accepted_units == 0 or cost_pending else projected_cost / accepted_units
+    projected_profit = projected_revenue - projected_cost
+    contribution_margin = sale_price * acceptance_ratio - unit_cost
+    break_even_price = inf if accepted_units == 0 else projected_cost / accepted_units
+    recommended_price = inf if break_even_price == inf else break_even_price * (1 + RECOMMENDED_PROFIT_MARGIN)
     break_even_units = inf if sale_price <= 0 else ceil(projected_cost / sale_price)
 
-    if cost_per_50 == 0:
-        status = "Costo pendiente"
-        decision = "Cargar el costo real de producir 50 galletitas cuando lo confirmen."
+    if sale_price == 0:
+        status = "Precio pendiente"
+        decision = f"Definir un precio unitario. Para ganar algo, conviene apuntar a por lo menos ${recommended_price:,.0f} por unidad."
     elif projected_profit > 0 and acceptance_rate >= 80:
         status = "Escala viable con estos datos"
-        decision = "Avanzar a una prueba de produccion mayor controlando costo unitario y textura."
+        decision = f"La produccion seria rentable. Como precio recomendado, mantener al menos ${recommended_price:,.0f} por unidad."
     elif acceptance_rate >= 80:
-        status = "Aceptacion alta, costo/precio a revisar"
-        decision = "Mantener la receta, pero ajustar costo de produccion, precio o escala."
+        status = "Aceptacion alta, pero habria perdida"
+        decision = f"Subir el precio: para cubrir costos se necesita al menos ${break_even_price:,.0f}; para ganar algo, alrededor de ${recommended_price:,.0f}."
     else:
         status = "Requiere ajuste de producto"
         decision = "Mejorar atributos sensoriales antes de escalar."
@@ -227,7 +232,7 @@ def simulate_viability_post(inputs: ViabilityPostInputs) -> dict:
                 "unidades_aceptadas_estimadas": accepted,
                 "costo_estimado": cost,
                 "ingresos_estimados": revenue,
-                "ganancia_estimada": 0 if cost_pending else revenue - cost,
+                "ganancia_estimada": revenue - cost,
             }
         )
 
@@ -246,10 +251,12 @@ def simulate_viability_post(inputs: ViabilityPostInputs) -> dict:
         "ganancia_estimada": projected_profit,
         "margen_unitario_ponderado": contribution_margin,
         "precio_equilibrio": break_even_price,
+        "precio_recomendado": recommended_price,
+        "margen_recomendado_pct": RECOMMENDED_PROFIT_MARGIN * 100,
         "unidades_equilibrio": break_even_units,
         "estado": status,
         "resultado": f"Aceptabilidad de {acceptance_rate:.1f}%: {inputs.positive_acceptance} respuestas positivas sobre {inputs.acceptance_responses}.",
-        "interpretacion": "La escala usa esa aceptabilidad como tasa base y proyecta costo, ingresos y ganancia segun la cantidad a producir.",
+        "interpretacion": f"El costo fijo de referencia es ${cost_per_50:,.0f} cada 50 galletitas, equivalente a ${unit_cost:,.0f} por unidad producida.",
         "recomendacion": "La textura es el atributo mas debil; conviene mejorar crocancia sin perder el sabor, que fue el mejor puntuado.",
         "decision": decision,
     }

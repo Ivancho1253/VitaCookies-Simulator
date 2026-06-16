@@ -39,12 +39,12 @@ MODEL_CARDS = {
         "title": "Analisis 3 - Aceptabilidad y escala productiva",
         "system": "Produccion a mayor escala usando la aceptabilidad real obtenida en el testeo sensorial.",
         "objective": "Proyectar costo, ingresos y ganancia para una cantidad mayor de galletitas.",
-        "entities": "Galletitas producidas, unidades aceptadas estimadas, consumidores, costo de 50 unidades, precio e ingresos.",
+        "entities": "Galletitas producidas, unidades aceptadas estimadas, consumidores, costo fijo de 50 unidades, precio e ingresos.",
         "state": "Aceptabilidad, costo unitario estimado, produccion objetivo, ingresos y ganancia estimada.",
-        "events": "Carga del costo real de producir 50 galletitas y proyeccion a escala.",
-        "parameters": "Costo de producir 50 galletitas, precio unitario y cantidad a producir.",
-        "inputs": "Aceptabilidad real del testeo y datos economicos editables.",
-        "outputs": "Aceptabilidad positiva, unidades aceptadas estimadas, costo unitario, precio de equilibrio, ingresos y ganancia estimada.",
+        "events": "Proyeccion a escala a partir del precio unitario y la cantidad a producir.",
+        "parameters": "Costo fijo de $15.000 cada 50 galletitas, precio unitario y cantidad a producir.",
+        "inputs": "Aceptabilidad real del testeo, precio unitario y cantidad a producir.",
+        "outputs": "Aceptabilidad positiva, unidades aceptadas estimadas, costo unitario, precio de equilibrio, precio recomendado, ingresos y ganancia estimada.",
         "assumptions": "La aceptabilidad real de 41 respuestas positivas sobre 50 galletitas testeadas se usa como tasa base para escalar.",
         "restrictions": "No reemplaza un estudio de mercado ni costos industriales reales.",
         "scope": "Apoya una decision posterior sobre escala de produccion, precio y ajuste de receta.",
@@ -150,7 +150,7 @@ La validacion queda incorporada porque los calculos usan los datos reales del ev
 
 - Si el pico digital observado se acerca a la capacidad definida, se recomienda escalonar respuestas en futuros testeos.
 - Si el sobrante observado es bajo, la produccion estuvo bien dimensionada.
-- Si la aceptabilidad es alta pero la ganancia estimada es baja, se recomienda revisar precio o costo de producir 50 unidades.
+- Si la aceptabilidad es alta pero la ganancia estimada es baja, se recomienda revisar el precio unitario recomendado.
 - Si textura aparece como atributo debil, se recomienda mejorar crocancia sin perder sabor.
 
 ## Limitaciones

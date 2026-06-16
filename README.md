@@ -20,7 +20,7 @@ Apoyar la toma de decisiones despues del testeo sensorial mediante:
 - analisis del flujo real del formulario;
 - balance real de stock;
 - indicadores de aceptacion;
-- proyeccion deterministica de escala con costo de producir 50 galletitas;
+- proyeccion deterministica de escala con costo fijo de $15.000 cada 50 galletitas;
 - verificacion;
 - informe academico automatico.
 
@@ -50,7 +50,7 @@ Compara galletitas producidas, consumidas y sobrantes. Sugiere una cantidad para
 
 ### 3. Aceptabilidad y escala productiva
 
-Usa la aceptabilidad real fija del testeo, 41 respuestas positivas sobre 50, y permite cargar el costo de producir 50 galletitas cuando este confirmado. Con ese unico costo, el precio unitario y una cantidad objetivo, proyecta costo unitario, ingresos, ganancia estimada y precio de equilibrio para producir a mayor escala.
+Usa la aceptabilidad real fija del testeo, 41 respuestas positivas sobre 50, y el costo confirmado de $15.000 cada 50 galletitas. Solo se carga precio unitario y cantidad objetivo; con eso proyecta costo total proporcional, ingresos, ganancia estimada, precio de equilibrio y precio recomendado.
 
 ## Informe automatico
 

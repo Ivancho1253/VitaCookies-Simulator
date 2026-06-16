@@ -30,11 +30,11 @@ La herramienta VitaCookies ahora trabaja con datos reales obtenidos durante el t
 
 - **Sistema:** produccion a mayor escala usando la aceptabilidad real del testeo.
 - **Objetivo:** proyectar costo, ingresos y ganancia para producir mas galletitas.
-- **Entidades:** respuestas de aceptabilidad, galletitas a producir, costo de producir 50 unidades, precio e ingresos.
+- **Entidades:** respuestas de aceptabilidad, galletitas a producir, costo fijo de 50 unidades, precio e ingresos.
 - **Variables de estado:** aceptabilidad positiva, costo unitario estimado, produccion objetivo, ingresos y ganancia estimada.
-- **Entrada:** 41 respuestas positivas sobre 50 galletitas testeadas, costo de producir 50 galletitas, precio unitario y cantidad objetivo.
-- **Salida:** aceptabilidad positiva, unidades aceptadas estimadas, costo unitario, precio de equilibrio y ganancia estimada.
-- **Restricciones:** el costo de producir 50 galletitas queda pendiente hasta que el equipo confirme cuanto gasto.
+- **Entrada:** 41 respuestas positivas sobre 50 galletitas testeadas, costo fijo de $15.000 cada 50 galletitas, precio unitario y cantidad objetivo.
+- **Salida:** aceptabilidad positiva, unidades aceptadas estimadas, costo unitario, precio de equilibrio, precio recomendado y ganancia estimada.
+- **Restricciones:** el costo se proyecta proporcionalmente; si cambia la escala real de compras o produccion, debe recalibrarse.
 
 ## Resultados sensoriales observados
 
@@ -57,7 +57,7 @@ Se controla que:
 
 ## Decision academica
 
-El testeo muestra buena aceptabilidad general y un stock bien dimensionado. El principal punto de mejora esta en la textura/crocancia, mientras que el sabor aparece como el atributo mas fuerte. La decision economica depende de cargar el costo real de producir 50 galletitas, definir precio unitario y evaluar la escala de produccion.
+El testeo muestra buena aceptabilidad general y un stock bien dimensionado. El principal punto de mejora esta en la textura/crocancia, mientras que el sabor aparece como el atributo mas fuerte. La decision economica depende de definir un precio unitario suficiente frente al costo fijo de $15.000 cada 50 galletitas.
 
 ## Defensa oral
 
@@ -68,4 +68,4 @@ La defensa debe enfocarse en:
 3. justificar el balance de stock con 50 producidas y 5 sobrantes;
 4. destacar aceptacion positiva y preferencia frente a ultraprocesados;
 5. proponer mejora de textura/crocancia;
-6. explicar como el costo de 50 galletitas, el precio y la escala determinan la viabilidad final.
+6. explicar como el precio unitario y la escala determinan la viabilidad final frente al costo de $15.000 cada 50 galletitas.
