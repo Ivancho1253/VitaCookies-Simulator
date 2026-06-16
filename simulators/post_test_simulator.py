@@ -278,11 +278,26 @@ def simulate_viability_post(inputs: ViabilityPostInputs) -> dict:
             {"concepto": "Ganancia estimada", "monto": projected_profit},
         ]
     )
+    unit_summary = pd.DataFrame(
+        [
+            {"concepto": "A vender estimadas", "unidades": accepted_units},
+            {"concepto": "Sin vender estimadas", "unidades": unsold_units},
+        ]
+    )
+    price_summary = pd.DataFrame(
+        [
+            {"concepto": "Tu precio", "precio": sale_price},
+            {"concepto": "Minimo sin perdida", "precio": 0 if break_even_price == inf else break_even_price},
+            {"concepto": "Recomendado", "precio": 0 if recommended_price == inf else recommended_price},
+        ]
+    )
     return {
         "metrics": metrics,
         "scores": DESCRIPTIVE_SCORES.copy(),
         "scenarios": pd.DataFrame(scenarios),
         "financial_summary": financial_summary,
+        "unit_summary": unit_summary,
+        "price_summary": price_summary,
     }
 
 

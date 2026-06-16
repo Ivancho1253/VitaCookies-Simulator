@@ -956,54 +956,53 @@ def viability_tab() -> None:
         f"El precio minimo para no perder plata es {break_even_price}; para ganar alrededor de {RECOMMENDED_PROFIT_MARGIN * 100:.0f}% conviene apuntar a {recommended_price}."
     )
     c1, c2 = st.columns(2)
-    scores = result["scores"].copy()
-    score_fig = px.bar(
-        scores,
-        x="atributo",
-        y="promedio",
-        text="promedio",
-        title="Puntajes sensoriales promedio",
-        color="atributo",
+    unit_fig = px.pie(
+        result["unit_summary"],
+        names="concepto",
+        values="unidades",
+        hole=0.45,
+        title="De lo producido, cuanto se venderia",
+        color="concepto",
+        color_discrete_map={
+            "A vender estimadas": "#1f7a5a",
+            "Sin vender estimadas": "#e07a3f",
+        },
     )
-    score_fig.update_traces(texttemplate="%{text:.2f}", textposition="outside")
-    score_fig.update_yaxes(range=[0, 5])
-    c1.plotly_chart(polish_chart(score_fig, 360), use_container_width=True)
+    unit_fig.update_traces(textinfo="label+value+percent")
+    c1.plotly_chart(polish_chart(unit_fig, 360), use_container_width=True)
 
-    financial_df = result["financial_summary"]
     financial = px.bar(
-        financial_df,
+        result["financial_summary"],
         x="concepto",
         y="monto",
         text="monto",
-        title="Resultado proyectado para la produccion elegida",
+        title="Con tu precio, gana o pierde plata",
         color="concepto",
+        color_discrete_map={
+            "Ingresos estimados": "#1f7a5a",
+            "Costo estimado": "#3f6fb5",
+            "Ganancia estimada": "#e07a3f" if m["ganancia_estimada"] >= 0 else "#b94d57",
+        },
     )
     financial.update_traces(texttemplate="$%{text:,.0f}", textposition="outside")
+    financial.add_hline(y=0, line_dash="dash", line_color="#6a756f")
     c2.plotly_chart(polish_chart(financial, 360), use_container_width=True)
 
-    projection = result["scenarios"].melt(
-        id_vars="produccion",
-        value_vars=["ingresos_estimados", "costo_estimado", "ganancia_estimada"],
-        var_name="indicador",
-        value_name="monto",
+    price_fig = px.bar(
+        result["price_summary"],
+        x="concepto",
+        y="precio",
+        text="precio",
+        title="Tu precio vs precio minimo y recomendado",
+        color="concepto",
+        color_discrete_map={
+            "Tu precio": "#3f6fb5",
+            "Minimo sin perdida": "#b94d57",
+            "Recomendado": "#1f7a5a",
+        },
     )
-    projection["indicador"] = projection["indicador"].map(
-        {
-            "ingresos_estimados": "Ingresos",
-            "costo_estimado": "Costo",
-            "ganancia_estimada": "Ganancia",
-        }
-    )
-    projection_fig = px.line(
-        projection,
-        x="produccion",
-        y="monto",
-        color="indicador",
-        markers=True,
-        title="Proyeccion por volumen de produccion",
-    )
-    projection_fig.update_yaxes(tickprefix="$")
-    st.plotly_chart(polish_chart(projection_fig, 360), use_container_width=True)
+    price_fig.update_traces(texttemplate="$%{text:,.0f}", textposition="outside")
+    st.plotly_chart(polish_chart(price_fig, 360), use_container_width=True)
     decision_panel(m)
 
 
